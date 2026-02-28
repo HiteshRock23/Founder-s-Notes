@@ -1,0 +1,15 @@
+﻿Analyzing mobile...                                             
+
+  error - The getter 'lastUpdatedText' isn't defined for the type 'Project' - lib\features\projects\presentation\widgets\project_header.dart:41:21 - undefined_getter
+
+flutter : 1 issue found. (ran in 4.4s)
+At line:1 char:1
++ flutter analyze --no-fatal-infos 2>&1 | 
+Out-File -Encoding utf8 analy ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (1 
+    issue found. (ran in 4.4s):String) [], Re  
+  moteException
+    + FullyQualifiedErrorId : NativeCommandErr 
+   or
+ 

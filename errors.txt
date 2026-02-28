@@ -1,0 +1,13 @@
+Analyzing mobile...                                             
+
+  error - The function 'StateNotifierProvider' isn't defined - lib\features\projects\presentation\providers\project_provider.dart:23:30 - undefined_function
+  error - Classes can only extend other classes - lib\features\projects\presentation\providers\project_provider.dart:27:32 - extends_non_class
+  error - Too many positional arguments: 0 expected, but 1 found - lib\features\projects\presentation\providers\project_provider.dart:30:46 - extra_positional_arguments
+  error - Undefined name 'state' - lib\features\projects\presentation\providers\project_provider.dart:35:5 - undefined_identifier
+  error - Undefined name 'state' - lib\features\projects\presentation\providers\project_provider.dart:38:7 - undefined_identifier
+  error - Undefined name 'state' - lib\features\projects\presentation\providers\project_provider.dart:40:7 - undefined_identifier
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\projects\presentation\widgets\item_tile.dart:42:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\projects\presentation\widgets\item_tile.dart:49:32 - deprecated_member_use
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\theme\app_theme.dart:17:9 - deprecated_member_use
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+
