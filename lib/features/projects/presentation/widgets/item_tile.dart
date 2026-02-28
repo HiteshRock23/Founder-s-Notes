@@ -17,23 +17,35 @@ class ItemTile extends StatelessWidget {
         _showSnackBar(context, 'No URL saved for this link.');
         return;
       }
-
       final uri = Uri.tryParse(rawUrl);
       if (uri == null) {
         _showSnackBar(context, 'Invalid URL.');
         return;
       }
-
       final canOpen = await canLaunchUrl(uri);
       if (canOpen) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          _showSnackBar(context, 'Could not open: $rawUrl');
-        }
+      } else if (context.mounted) {
+        _showSnackBar(context, 'Could not open: $rawUrl');
+      }
+    } else if (item.type == ItemType.file) {
+      final fileUrl = item.fileUrl;
+      if (fileUrl == null || fileUrl.isEmpty) {
+        _showSnackBar(context, 'File URL not available.');
+        return;
+      }
+      final uri = Uri.tryParse(fileUrl);
+      if (uri == null) {
+        _showSnackBar(context, 'Invalid file URL.');
+        return;
+      }
+      final canOpen = await canLaunchUrl(uri);
+      if (canOpen) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else if (context.mounted) {
+        _showSnackBar(context, 'Could not open file.');
       }
     } else {
-      // Notes and files — detail view coming soon
       _showSnackBar(context, 'Detail view coming soon!');
     }
   }

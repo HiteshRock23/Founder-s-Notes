@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 import '../../domain/entities/item.dart';
 import '../providers/project_provider.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -41,6 +43,9 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
   bool _isSubmitting = false;
   String? _serverError;
 
+  // File-type state
+  PlatformFile? _pickedFile;
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -48,6 +53,23 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
     _urlController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg'],
+      withData: false,
+    );
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _pickedFile = result.files.first;
+        if (_titleController.text.trim().isEmpty) {
+          _titleController.text =
+              p.basenameWithoutExtension(_pickedFile!.name);
+        }
+      });
+    }
   }
 
   // ──────────────────────────────────────────────────────
@@ -61,43 +83,69 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      await ref.read(addItemProvider(widget.projectId).notifier).addItem(
-            type: _selectedType,
-            title: _titleController.text.trim(),
-            content: _selectedType == ItemType.note
-                ? _contentController.text.trim().isEmpty
-                    ? null
-                    : _contentController.text.trim()
-                : null,
-            url: _selectedType == ItemType.link
-                ? _urlController.text.trim()
-                : null,
-            description: _selectedType == ItemType.link
-                ? _descriptionController.text.trim().isEmpty
-                    ? null
-                    : _descriptionController.text.trim()
-                : null,
-          );
+      if (_selectedType == ItemType.file) {
+        // File upload uses multipart FormData — different codepath.
+        final filePath = _pickedFile?.path;
+        if (filePath == null) {
+          setState(() {
+            _isSubmitting = false;
+            _serverError = 'Could not access file path. Try again.';
+          });
+          return;
+        }
+        await ref
+            .read(addItemProvider(widget.projectId).notifier)
+            .addFileItem(
+              title: _titleController.text.trim(),
+              filePath: filePath,
+              fileName: _pickedFile!.name,
+            );
+      } else {
+        await ref.read(addItemProvider(widget.projectId).notifier).addItem(
+              type: _selectedType,
+              title: _titleController.text.trim(),
+              content: _selectedType == ItemType.note
+                  ? _contentController.text.trim().isEmpty
+                      ? null
+                      : _contentController.text.trim()
+                  : null,
+              url: _selectedType == ItemType.link
+                  ? _urlController.text.trim()
+                  : null,
+              description: _selectedType == ItemType.link
+                  ? _descriptionController.text.trim().isEmpty
+                      ? null
+                      : _descriptionController.text.trim()
+                  : null,
+            );
+      }
 
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       setState(() {
         _isSubmitting = false;
-        // Show the real backend message when available, otherwise a generic fallback.
         if (e is ApiException) {
           _serverError = e.message.isNotEmpty
               ? e.message
-              : 'Something went wrong. Please try again.';
+              : 'Server error. Please try again.';
         } else {
-          _serverError = 'Something went wrong. Please try again.';
+          // Show real error in debug so we can identify root cause.
+          _serverError = e.toString();
         }
       });
     }
   }
 
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   // ──────────────────────────────────────────────────────
   // Build
   // ──────────────────────────────────────────────────────
+
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +250,71 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
               ),
             ],
 
+            // ── File-specific section ─────────────────────
+            if (_selectedType == ItemType.file) ...[
+              InkWell(
+                onTap: _isSubmitting ? null : _pickFile,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _pickedFile != null
+                          ? const Color(0xFF2196F3)
+                          : Colors.grey.shade300,
+                      width: _pickedFile != null ? 1.5 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: _pickedFile != null
+                        ? const Color(0xFFE3F2FD)
+                        : Colors.grey.shade50,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _pickedFile != null
+                            ? Icons.check_circle_rounded
+                            : Icons.attach_file_rounded,
+                        color: _pickedFile != null
+                            ? const Color(0xFF2196F3)
+                            : Colors.grey[500],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _pickedFile != null
+                              ? _pickedFile!.name
+                              : 'Choose file  (PDF, DOC, PNG, JPG)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _pickedFile != null
+                                ? const Color(0xFF1565C0)
+                                : Colors.grey[500],
+                            fontWeight: _pickedFile != null
+                                ? FontWeight.w500
+                                : FontWeight.normal,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_pickedFile?.size != null && _pickedFile!.size > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 4),
+                  child: Text(
+                    _formatBytes(_pickedFile!.size),
+                    style:
+                        TextStyle(fontSize: 11, color: Colors.grey[500]),
+                  ),
+                ),
+            ],
+
             // ── Server error ──────────────────────────────
             if (_serverError != null) ...[
               const SizedBox(height: 12),
@@ -238,7 +351,11 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
             SizedBox(
               height: 52,
               child: FilledButton(
-                onPressed: _isSubmitting ? null : _submit,
+                onPressed: _isSubmitting
+                    ? null
+                    : (_selectedType == ItemType.file && _pickedFile == null)
+                        ? null // disabled until file is picked
+                        : _submit,
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -286,6 +403,8 @@ class _TypeChipRow extends StatelessWidget {
         _chip(context, ItemType.note, Icons.notes_rounded, 'Note'),
         const SizedBox(width: 8),
         _chip(context, ItemType.link, Icons.link_rounded, 'Link'),
+        const SizedBox(width: 8),
+        _chip(context, ItemType.file, Icons.upload_file_rounded, 'File'),
       ],
     );
   }

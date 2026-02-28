@@ -25,8 +25,32 @@ class ProjectRepositoryImpl implements ProjectRepository {
 
   @override
   Future<Project> createProject(String name, String? description) async {
-    // Data layer returns a ProjectModel which IS-A Project — clean domain boundary.
     return remoteDataSource.createProject(name, description);
+  }
+
+  @override
+  Future<Project> renameProject(String projectId, String newName) async {
+    return remoteDataSource.renameProject(projectId, newName);
+  }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    return remoteDataSource.deleteProject(projectId);
+  }
+
+  @override
+  Future<Item> createFileItem({
+    required String projectId,
+    required String title,
+    required String filePath,
+    required String fileName,
+  }) async {
+    return remoteDataSource.createFileItem(
+      projectId: projectId,
+      title: title,
+      filePath: filePath,
+      fileName: fileName,
+    );
   }
 
   @override

@@ -2,6 +2,14 @@
     <!-- Required to fetch data from the internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Required by file_picker on Android < 13 to read files from storage -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Required by file_picker on Android >= 13 for granular media access -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
     <application
         android:label="Founder Hub"
         android:name="${applicationName}"

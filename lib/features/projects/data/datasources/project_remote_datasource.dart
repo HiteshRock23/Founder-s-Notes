@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:mobile/core/network/dio_client.dart';
 import 'package:mobile/core/constants/endpoints.dart';
 import '../../domain/entities/item.dart';
@@ -9,6 +10,14 @@ abstract class ProjectRemoteDataSource {
   Future<ProjectModel> getProjectDetail(String id);
   Future<List<ItemModel>> getProjectItems(String projectId);
   Future<ProjectModel> createProject(String name, String? description);
+  Future<ProjectModel> renameProject(String projectId, String newName);
+  Future<void> deleteProject(String projectId);
+  Future<ItemModel> createFileItem({
+    required String projectId,
+    required String title,
+    required String filePath,
+    required String fileName,
+  });
   Future<ItemModel> createItem({
     required String projectId,
     required ItemType type,
@@ -57,6 +66,50 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     };
     final response = await _dioClient.post(Endpoints.projects, data: body);
     return ProjectModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ProjectModel> renameProject(String projectId, String newName) async {
+    final response = await _dioClient.patch(
+      Endpoints.renameProject(projectId),
+      data: {'name': newName.trim()},
+    );
+    return ProjectModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    await _dioClient.delete(Endpoints.deleteProject(projectId));
+  }
+
+  @override
+  Future<ItemModel> createFileItem({
+    required String projectId,
+    required String title,
+    required String filePath,
+    required String fileName,
+  }) async {
+    // The backend serializer uses `file_upload` (write-only FileField).
+    // Sending `file` would be a no-op — it's a read-only SerializerMethodField.
+    final formData = FormData.fromMap({
+      'type': 'file',
+      'title': title.trim(),
+      'file_upload': await MultipartFile.fromFile(
+        filePath,
+        filename: fileName,
+      ),
+    });
+
+    final response = await _dioClient.post(
+      Endpoints.createItem(projectId),
+      data: formData,
+      // NOTE: Do NOT set Options(contentType: multipartFormDataContentType) here.
+      // Dio detects FormData and sets the correct multipart/form-data boundary
+      // automatically. Overriding it strips the boundary string AND Dio's built-in
+      // JSON response decoder — causing response.data to come back as a raw String
+      // instead of a Map<String, dynamic>, which would throw a TypeError on cast.
+    );
+    return ItemModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override

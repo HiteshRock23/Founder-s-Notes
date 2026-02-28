@@ -43,25 +43,51 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   }
 
   // ── Create ────────────────────────────────
-  /// Creates a project on the backend and inserts it at the top of the
-  /// local list — no full refetch. Throws on error so the UI can handle it.
+  /// Creates a project and inserts it at the top — no full refetch.
   Future<void> createProject(String name, String? description) async {
-    // Capture current list before mutating state.
     final currentList = state.valueOrNull ?? [];
-
     try {
       final newProject = await _repository.createProject(name, description);
-
-      // Immutably prepend new project — O(n) copy, acceptable for SaaS lists.
       state = AsyncValue.data([newProject, ...currentList]);
     } catch (e, stack) {
-      // Restore previous state so the list is not left in a broken condition.
       state = AsyncValue.data(currentList);
-      // Re-throw so the UI layer can show a localized error in the sheet.
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  // ── Rename ────────────────────────────────
+  /// PATCHes the backend and replaces only the renamed entry in the list.
+  /// Uses the server's response as source of truth (avoids stale local state).
+  Future<void> renameProject(String projectId, String newName) async {
+    final currentList = state.valueOrNull ?? [];
+    try {
+      final updated = await _repository.renameProject(projectId, newName);
+      state = AsyncValue.data([
+        for (final p in currentList)
+          if (p.id == projectId) updated else p,
+      ]);
+    } catch (e, stack) {
+      state = AsyncValue.data(currentList);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  // ── Delete ────────────────────────────────
+  /// DELETEs on the backend then filters the project out of the local list.
+  Future<void> deleteProject(String projectId) async {
+    final currentList = state.valueOrNull ?? [];
+    try {
+      await _repository.deleteProject(projectId);
+      state = AsyncValue.data(
+        currentList.where((p) => p.id != projectId).toList(),
+      );
+    } catch (e, stack) {
+      state = AsyncValue.data(currentList);
       Error.throwWithStackTrace(e, stack);
     }
   }
 }
+
 
 // ──────────────────────────────────────────────
 // Project Items State
@@ -70,6 +96,28 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
 final projectItemsProvider =
     FutureProvider.family<List<Item>, String>((ref, projectId) async {
   return ref.watch(projectRepositoryProvider).getProjectItems(projectId);
+});
+
+// ──────────────────────────────────────────────
+// All Items (cross-project) — for Global Search
+// ──────────────────────────────────────────────
+
+/// Derives a flat list of every Item across all loaded projects.
+///
+/// Design: watches [projectsListProvider] so that if projects are added
+/// or removed this provider re-evaluates automatically. For each project it
+/// also watches [projectItemsProvider] so any item CRUD invalidation flows
+/// through here to search without any extra wiring.
+///
+/// Cost: O(projects) provider subscriptions — negligible for SaaS-scale
+/// project counts. When moving to backend search this provider is deleted
+/// and SearchNotifier calls the API directly instead.
+final allItemsProvider = Provider<List<Item>>((ref) {
+  final projects = ref.watch(projectsListProvider).valueOrNull ?? [];
+  return [
+    for (final project in projects)
+      ...ref.watch(projectItemsProvider(project.id)).valueOrNull ?? [],
+  ];
 });
 
 // ──────────────────────────────────────────────
@@ -110,6 +158,29 @@ class AddItemNotifier extends StateNotifier<AsyncValue<void>> {
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
       // Re-throw so the sheet can display a human-readable error.
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  /// Uploads a file item via multipart form-data.
+  /// Follows the same invalidation pattern as [addItem].
+  Future<void> addFileItem({
+    required String title,
+    required String filePath,
+    required String fileName,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.createFileItem(
+        projectId: _projectId,
+        title: title,
+        filePath: filePath,
+        fileName: fileName,
+      );
+      _ref.invalidate(projectItemsProvider(_projectId));
+      state = const AsyncValue.data(null);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
       Error.throwWithStackTrace(e, stack);
     }
   }
