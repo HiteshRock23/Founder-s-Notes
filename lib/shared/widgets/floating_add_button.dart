@@ -10,14 +10,15 @@ class FloatingAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return FloatingActionButton(
       onPressed: onPressed,
-      backgroundColor: const Color(0xFF2196F3),
+      backgroundColor: theme.colorScheme.primary,
       elevation: 4,
       shape: const CircleBorder(),
-      child: const Icon(
+      child: Icon(
         Icons.add,
-        color: Colors.white,
+        color: theme.colorScheme.onPrimary,
         size: 32,
       ),
     );

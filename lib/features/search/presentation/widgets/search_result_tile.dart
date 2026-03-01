@@ -84,6 +84,7 @@ class SearchResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: _onTap,
       borderRadius: BorderRadius.circular(12),
@@ -91,12 +92,12 @@ class SearchResultTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -137,7 +138,7 @@ class SearchResultTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -153,7 +154,7 @@ class SearchResultTile extends StatelessWidget {
 
             // ── Chevron ────────────────────────────────────────────────────
             const SizedBox(width: 6),
-            Icon(Icons.chevron_right, color: Colors.grey[350], size: 18),
+            Icon(Icons.chevron_right, color: theme.colorScheme.outlineVariant, size: 18),
           ],
         ),
       ),
@@ -169,6 +170,7 @@ class _ProjectChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -178,7 +180,7 @@ class _ProjectChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.folder_outlined, size: 10, color: Colors.grey[500]),
+          Icon(Icons.folder_outlined, size: 10, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -187,7 +189,7 @@ class _ProjectChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
-                color: Colors.grey[600],
+                color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),

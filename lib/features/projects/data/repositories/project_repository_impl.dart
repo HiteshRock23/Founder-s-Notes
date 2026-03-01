@@ -34,8 +34,18 @@ class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   @override
+  Future<Project> toggleStar(String projectId, bool isStarred) async {
+    return remoteDataSource.toggleStar(projectId, isStarred);
+  }
+
+  @override
   Future<void> deleteProject(String projectId) async {
     return remoteDataSource.deleteProject(projectId);
+  }
+
+  @override
+  Future<void> deleteMultipleProjects(List<String> projectIds) async {
+    return remoteDataSource.deleteMultipleProjects(projectIds);
   }
 
   @override
@@ -51,6 +61,41 @@ class ProjectRepositoryImpl implements ProjectRepository {
       filePath: filePath,
       fileName: fileName,
     );
+  }
+
+  @override
+  Future<Item> updateItem({
+    required String itemId,
+    required String projectId,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+  }) async {
+    return remoteDataSource.updateItem(
+      itemId: itemId,
+      projectId: projectId,
+      title: title,
+      content: content,
+      url: url,
+      description: description,
+    );
+  }
+
+  @override
+  Future<void> deleteItem({
+    required String itemId,
+    required String projectId,
+  }) async {
+    return remoteDataSource.deleteItem(itemId: itemId, projectId: projectId);
+  }
+
+  @override
+  Future<void> deleteMultipleItems({
+    required List<String> itemIds,
+    required String projectId,
+  }) async {
+    return remoteDataSource.deleteMultipleItems(itemIds: itemIds, projectId: projectId);
   }
 
   @override

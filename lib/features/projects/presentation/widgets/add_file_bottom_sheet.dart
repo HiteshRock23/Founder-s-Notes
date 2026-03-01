@@ -188,8 +188,8 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
               onTap: _isUploading ? null : _pickFile,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _pickedFile != null
@@ -295,12 +295,12 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
                   child: FilledButton.icon(
                     onPressed: canUpload ? _upload : null,
                     icon: _isUploading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: theme.colorScheme.onPrimary,
                             ),
                           )
                         : const Icon(Icons.upload_rounded, size: 18),

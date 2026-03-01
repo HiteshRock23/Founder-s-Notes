@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/network/dio_client.dart';
+import 'package:mobile/core/providers/selection_provider.dart';
 import '../../domain/entities/project.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/repositories/project_repository.dart';
@@ -72,6 +73,22 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  // ── Star Toggle ───────────────────────────
+  /// PATCHes the backend and updates the star status immutably in the list.
+  Future<void> toggleStar(String projectId, bool isStarred) async {
+    final currentList = state.valueOrNull ?? [];
+    try {
+      final updated = await _repository.toggleStar(projectId, isStarred);
+      state = AsyncValue.data([
+        for (final p in currentList)
+          if (p.id == projectId) updated else p,
+      ]);
+    } catch (e, stack) {
+      state = AsyncValue.data(currentList);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
   // ── Delete ────────────────────────────────
   /// DELETEs on the backend then filters the project out of the local list.
   Future<void> deleteProject(String projectId) async {
@@ -80,6 +97,22 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       await _repository.deleteProject(projectId);
       state = AsyncValue.data(
         currentList.where((p) => p.id != projectId).toList(),
+      );
+    } catch (e, stack) {
+    } catch (e, stack) {
+      state = AsyncValue.data(currentList);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  // ── Delete Multiple ───────────────────────
+  Future<void> deleteMultiple(List<String> projectIds) async {
+    final currentList = state.valueOrNull ?? [];
+    try {
+      await _repository.deleteMultipleProjects(projectIds);
+      final idSet = Set<String>.from(projectIds);
+      state = AsyncValue.data(
+        currentList.where((p) => !idSet.contains(p.id)).toList(),
       );
     } catch (e, stack) {
       state = AsyncValue.data(currentList);
@@ -94,9 +127,58 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
 // ──────────────────────────────────────────────
 
 final projectItemsProvider =
-    FutureProvider.family<List<Item>, String>((ref, projectId) async {
-  return ref.watch(projectRepositoryProvider).getProjectItems(projectId);
+    StateNotifierProvider.family<ProjectItemsNotifier, AsyncValue<List<Item>>, String>((ref, projectId) {
+  return ProjectItemsNotifier(ref.watch(projectRepositoryProvider), projectId);
 });
+
+class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
+  final ProjectRepository _repository;
+  final String _projectId;
+
+  ProjectItemsNotifier(this._repository, this._projectId) : super(const AsyncValue.loading()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _repository.getProjectItems(_projectId));
+  }
+
+  Future<void> updateItem(Item updatedItem) async {
+    final currentList = state.valueOrNull ?? [];
+    
+    // 1) Call repository to perform PATCH
+    await _repository.updateItem(
+      itemId: updatedItem.id,
+      projectId: updatedItem.projectId,
+      title: updatedItem.title,
+      content: updatedItem.content,
+      url: updatedItem.url,
+      description: updatedItem.description,
+    );
+    
+    // 2) Replace item in state list immutably without refetching from network
+    state = AsyncValue.data([
+      for (final item in currentList)
+        if (item.id == updatedItem.id) updatedItem else item
+    ]);
+  }
+
+  /// Batch DELETEs on the backend then filters the items out of the local list.
+  Future<void> deleteMultipleItems(List<String> itemIds) async {
+    final currentList = state.valueOrNull ?? [];
+    try {
+      await _repository.deleteMultipleItems(itemIds: itemIds, projectId: _projectId);
+      final idSet = Set<String>.from(itemIds);
+      state = AsyncValue.data(
+        currentList.where((i) => !idSet.contains(i.id)).toList(),
+      );
+    } catch (e, stack) {
+      state = AsyncValue.data(currentList);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+}
 
 // ──────────────────────────────────────────────
 // All Items (cross-project) — for Global Search
@@ -163,7 +245,6 @@ class AddItemNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   /// Uploads a file item via multipart form-data.
-  /// Follows the same invalidation pattern as [addItem].
   Future<void> addFileItem({
     required String title,
     required String filePath,
@@ -184,10 +265,48 @@ class AddItemNotifier extends StateNotifier<AsyncValue<void>> {
       Error.throwWithStackTrace(e, stack);
     }
   }
+
+  /// PATCHes an existing item and refreshes the project items list.
+  Future<void> editItem({
+    required String itemId,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.updateItem(
+        itemId: itemId,
+        projectId: _projectId,
+        title: title,
+        content: content,
+        url: url,
+        description: description,
+      );
+      _ref.invalidate(projectItemsProvider(_projectId));
+      state = const AsyncValue.data(null);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  /// DELETEs an item and refreshes the project items list.
+  Future<void> deleteItem(String itemId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteItem(itemId: itemId, projectId: _projectId);
+      _ref.invalidate(projectItemsProvider(_projectId));
+      state = const AsyncValue.data(null);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      Error.throwWithStackTrace(e, stack);
+    }
+  }
 }
 
-final addItemProvider = StateNotifierProvider.autoDispose
-    .family<AddItemNotifier, AsyncValue<void>, String>((ref, projectId) {
+final addItemProvider = StateNotifierProvider.family<AddItemNotifier, AsyncValue<void>, String>((ref, projectId) {
   return AddItemNotifier(
     ref.watch(projectRepositoryProvider),
     ref,

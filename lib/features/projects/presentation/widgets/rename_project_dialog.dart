@@ -167,12 +167,12 @@ class _RenameProjectDialogState extends ConsumerState<RenameProjectDialog> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           child: _isSaving
-              ? const SizedBox(
+              ? SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 )
               : const Text('Save'),

@@ -1,0 +1,26 @@
+﻿Analyzing mobile...                                             
+
+warning - Unused import: 'package:mobile/core/providers/selection_provider.dart' - lib\features\projects\presentation\providers\project_provider.dart:3:8 - unused_import
+warning - The stack trace variable 'stack' isn't used and can be removed - lib\features\projects\presentation\providers\project_provider.dart:101:17 - unused_catch_stack
+   info - Empty catch block - lib\features\projects\presentation\providers\project_provider.dart:101:24 - empty_catches
+warning - Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached - lib\features\projects\presentation\providers\project_provider.dart:102:7 - dead_code_catch_following_catch
+  error - Target of URI doesn't exist: '../../../../core/providers/selection_providers.dart' - lib\features\projects\presentation\screens\project_detail_screen.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'itemSelectionProvider' - lib\features\projects\presentation\screens\project_detail_screen.dart:130:38 - undefined_identifier
+  error - Undefined name 'itemSelectionProvider' - lib\features\projects\presentation\screens\project_detail_screen.dart:131:40 - undefined_identifier
+  error - Undefined name 'itemSelectionProvider' - lib\features\projects\presentation\screens\project_detail_screen.dart:270:24 - undefined_identifier
+  error - Undefined name 'itemSelectionProvider' - lib\features\projects\presentation\screens\project_detail_screen.dart:298:38 - undefined_identifier
+  error - Undefined name 'itemSelectionProvider' - lib\features\projects\presentation\screens\project_detail_screen.dart:299:40 - undefined_identifier
+  error - Undefined name 'projectSelectionProvider' - lib\features\projects\presentation\screens\projects_screen.dart:18:38 - undefined_identifier
+  error - Undefined name 'projectSelectionProvider' - lib\features\projects\presentation\screens\projects_screen.dart:19:40 - undefined_identifier
+  error - Undefined name 'projectSelectionProvider' - lib\features\projects\presentation\screens\projects_screen.dart:123:38 - undefined_identifier
+  error - Undefined name 'projectSelectionProvider' - lib\features\projects\presentation\screens\projects_screen.dart:124:40 - undefined_identifier
+  error - The class 'RenameProjectDialog' doesn't have an unnamed constructor - lib\features\projects\presentation\screens\projects_screen.dart:160:37 - new_with_undefined_constructor_default
+  error - Undefined name 'projectSelectionProvider' - lib\features\projects\presentation\screens\projects_screen.dart:217:24 - undefined_identifier
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\projects\presentation\widgets\item_tile.dart:2:8 - unnecessary_import
+warning - The declaration '_editSubtitle' isn't referenced - lib\features\projects\presentation\widgets\item_tile.dart:156:14 - unused_element
+  error - Expected a method, getter, setter or operator declaration - lib\features\projects\presentation\widgets\item_tile.dart:311:1 - expected_executable
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:30:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:43:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:59:11 - prefer_const_constructors
+   info - 'dialogBackgroundColor' is deprecated and shouldn't be used. Use DialogThemeData.backgroundColor instead. This feature was deprecated after v3.27.0-0.1.pre - lib\theme\app_theme.dart:101:7 - deprecated_member_use
+

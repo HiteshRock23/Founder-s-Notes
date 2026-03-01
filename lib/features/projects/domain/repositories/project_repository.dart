@@ -10,11 +10,16 @@ abstract class ProjectRepository {
   /// Renames [projectId] to [newName]. Returns the updated Project.
   Future<Project> renameProject(String projectId, String newName);
 
+  /// Toggles the star status of a project. Returns the updated Project.
+  Future<Project> toggleStar(String projectId, bool isStarred);
+
   /// Permanently deletes [projectId] from the backend.
   Future<void> deleteProject(String projectId);
 
+  /// Permanently deletes multiple projects by ID.
+  Future<void> deleteMultipleProjects(List<String> projectIds);
+
   /// Uploads a file item (PDF, image, doc) to [projectId].
-  /// [filePath] is the absolute path on the device returned by file_picker.
   Future<Item> createFileItem({
     required String projectId,
     required String title,
@@ -22,8 +27,29 @@ abstract class ProjectRepository {
     required String fileName,
   });
 
+  /// PATCHes mutable fields on an existing item.
+  Future<Item> updateItem({
+    required String itemId,
+    required String projectId,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+  });
+
+  /// DELETEs an item permanently from the backend.
+  Future<void> deleteItem({
+    required String itemId,
+    required String projectId,
+  });
+
+  /// Permanently deletes multiple items by ID.
+  Future<void> deleteMultipleItems({
+    required List<String> itemIds,
+    required String projectId,
+  });
+
   /// Creates a new item inside [projectId].
-  /// Only [title] is required; all other fields are type-specific.
   Future<Item> createItem({
     required String projectId,
     required ItemType type,

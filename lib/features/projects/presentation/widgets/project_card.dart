@@ -4,11 +4,23 @@ import '../../domain/entities/project.dart';
 class ProjectCard extends StatelessWidget {
   final Project project;
   final VoidCallback onTap;
+  final VoidCallback? onToggleStar;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onRename;
+  final VoidCallback? onDelete;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const ProjectCard({
     super.key,
     required this.project,
     required this.onTap,
+    this.onToggleStar,
+    this.onLongPress,
+    this.onRename,
+    this.onDelete,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   });
 
   @override
@@ -21,10 +33,15 @@ class ProjectCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? Colors.black54 : Colors.transparent,
+          width: isSelected ? 2 : 0,
+        ),
       ),
-      color: const Color(0xFFF8F9FA),
+      color: isSelected ? Colors.grey[200] : const Color(0xFFF8F9FA),
       child: InkWell(
-        onTap: onTap,
+        onTap: isSelectionMode ? onTap : onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -50,13 +67,23 @@ class ProjectCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      project.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            project.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        if (project.isStarred) ...[
+                          const SizedBox(width: 6),
+                          const Icon(Icons.star, size: 16, color: Colors.orange),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -81,7 +108,70 @@ class ProjectCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey[400]),
+              if (isSelectionMode)
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isSelected ? Colors.black87 : Colors.grey[400],
+                )
+              else
+                // Menu instead of chevron
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: (value) async {
+                    if (value == 'rename') {
+                      if (onRename != null) onRename!();
+                    } else if (value == 'star') {
+                      if (onToggleStar != null) onToggleStar!();
+                    } else if (value == 'delete') {
+                      if (onDelete != null) onDelete!();
+                    }
+                  },
+                  itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'rename',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
+                        SizedBox(width: 10),
+                        Text('Rename'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'star',
+                    child: Row(
+                      children: [
+                        Icon(
+                          project.isStarred ? Icons.star : Icons.star_border,
+                          size: 18,
+                          color: project.isStarred ? Colors.orange : Colors.black87,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(project.isStarred ? 'Unstar' : 'Star'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline,
+                            size: 18, color: Colors.red[600]),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

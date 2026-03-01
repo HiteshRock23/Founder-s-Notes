@@ -79,6 +79,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchProvider);
+    final theme = Theme.of(context);
 
     return GestureDetector(
       // Dismiss keyboard when tapping outside the text field.
@@ -93,7 +94,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             SliverAppBar(
               floating: true,
               snap: true,
-              backgroundColor: Colors.white,
+              backgroundColor: theme.scaffoldBackgroundColor,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               titleSpacing: 20,
@@ -202,8 +203,9 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.white,
+      color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: TextField(
         controller: controller,

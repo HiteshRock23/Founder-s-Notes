@@ -11,12 +11,30 @@ abstract class ProjectRemoteDataSource {
   Future<List<ItemModel>> getProjectItems(String projectId);
   Future<ProjectModel> createProject(String name, String? description);
   Future<ProjectModel> renameProject(String projectId, String newName);
+  Future<ProjectModel> toggleStar(String projectId, bool isStarred);
   Future<void> deleteProject(String projectId);
+  Future<void> deleteMultipleProjects(List<String> projectIds);
   Future<ItemModel> createFileItem({
     required String projectId,
     required String title,
     required String filePath,
     required String fileName,
+  });
+  Future<ItemModel> updateItem({
+    required String itemId,
+    required String projectId,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+  });
+  Future<void> deleteItem({
+    required String itemId,
+    required String projectId,
+  });
+  Future<void> deleteMultipleItems({
+    required List<String> itemIds,
+    required String projectId,
   });
   Future<ItemModel> createItem({
     required String projectId,
@@ -78,8 +96,26 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
   }
 
   @override
+  Future<ProjectModel> toggleStar(String projectId, bool isStarred) async {
+    final response = await _dioClient.patch(
+      Endpoints.renameProject(projectId), // Same endpoint as rename (PATCH /api/projects/{id}/)
+      data: {'is_starred': isStarred},
+    );
+    return ProjectModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
   Future<void> deleteProject(String projectId) async {
     await _dioClient.delete(Endpoints.deleteProject(projectId));
+  }
+
+  @override
+  Future<void> deleteMultipleProjects(List<String> projectIds) async {
+    // Requires trailing slash due to Django's APPEND_SLASH setting
+    await _dioClient.post(
+      Endpoints.batchDeleteProjects,
+      data: {'ids': projectIds},
+    );
   }
 
   @override
@@ -110,6 +146,48 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
       // instead of a Map<String, dynamic>, which would throw a TypeError on cast.
     );
     return ItemModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ItemModel> updateItem({
+    required String itemId,
+    required String projectId,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+  }) async {
+    // Only send fields that are actually being changed (PATCH = partial update).
+    final body = <String, dynamic>{
+      if (title != null) 'title': title.trim(),
+      if (content != null) 'content': content.trim(),
+      if (url != null) 'url': url.trim(),
+      if (description != null) 'description': description.trim(),
+    };
+    final response = await _dioClient.patch(
+      Endpoints.itemDetail(itemId),
+      data: body,
+    );
+    return ItemModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteItem({
+    required String itemId,
+    required String projectId,
+  }) async {
+    await _dioClient.delete(Endpoints.itemDetail(itemId));
+  }
+
+  @override
+  Future<void> deleteMultipleItems({
+    required List<String> itemIds,
+    required String projectId,
+  }) async {
+    await _dioClient.post(
+      Endpoints.batchDeleteItems,
+      data: {'ids': itemIds},
+    );
   }
 
   @override

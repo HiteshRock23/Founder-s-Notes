@@ -1,0 +1,19 @@
+Analyzing mobile...                                             
+
+warning - Unused import: 'package:mobile/core/providers/selection_provider.dart' - lib\features\projects\presentation\providers\project_provider.dart:3:8 - unused_import
+warning - The stack trace variable 'stack' isn't used and can be removed - lib\features\projects\presentation\providers\project_provider.dart:101:17 - unused_catch_stack
+   info - Empty catch block - lib\features\projects\presentation\providers\project_provider.dart:101:24 - empty_catches
+warning - Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached - lib\features\projects\presentation\providers\project_provider.dart:102:7 - dead_code_catch_following_catch
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\projects\presentation\widgets\item_tile.dart:2:8 - unnecessary_import
+warning - The declaration '_editSubtitle' isn't referenced - lib\features\projects\presentation\widgets\item_tile.dart:156:14 - unused_element
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:30:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:43:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\settings\presentation\screens\settings_screen.dart:59:11 - prefer_const_constructors
+  error - The named parameter 'scaffoldBackgroundColor' isn't defined - lib\theme\app_theme.dart:13:7 - undefined_named_parameter
+  error - The named parameter 'scaffoldBackgroundColor' isn't defined - lib\theme\app_theme.dart:31:7 - undefined_named_parameter
+  error - The getter 'scaffoldBackgroundColor' isn't defined for the type 'ColorScheme' - lib\theme\app_theme.dart:47:44 - undefined_getter
+   info - 'dialogBackgroundColor' is deprecated and shouldn't be used. Use DialogThemeData.backgroundColor instead. This feature was deprecated after v3.27.0-0.1.pre - lib\theme\app_theme.dart:49:7 - deprecated_member_use
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\theme\app_theme.dart:74:18 - argument_type_not_assignable
+  error - The argument type 'DialogTheme' can't be assigned to the parameter type 'DialogThemeData?'.  - lib\theme\app_theme.dart:102:20 - argument_type_not_assignable
+
+15 issues found. (ran in 2.5s)

@@ -45,4 +45,32 @@ class Item {
         return fileUrl != null ? 'Tap to view file' : '';
     }
   }
+
+  Item copyWith({
+    String? id,
+    String? projectId,
+    ItemType? type,
+    String? title,
+    String? content,
+    String? url,
+    String? description,
+    String? favicon,
+    String? fileUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Item(
+      id: id ?? this.id,
+      projectId: projectId ?? this.projectId,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      url: url ?? this.url,
+      description: description ?? this.description,
+      favicon: favicon ?? this.favicon,
+      fileUrl: fileUrl ?? this.fileUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

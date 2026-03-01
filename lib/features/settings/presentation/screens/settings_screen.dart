@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/theme_provider.dart';
 
 /// SettingsScreen — app configuration, account management, and about info.
 ///
 /// Current state: structural skeleton with real sections.
 /// Future: wire each tile to its respective action/screen.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final themeMode = ref.watch(themeProvider);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Settings',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         titleSpacing: 20,
@@ -46,8 +51,10 @@ class SettingsScreen extends StatelessWidget {
           _SettingsTile(
             icon: Icons.color_lens_outlined,
             title: 'Appearance',
-            subtitle: 'Theme and display options',
-            onTap: () {},
+            subtitle: _getThemeModeString(themeMode),
+            onTap: () {
+              _showThemeModeSelector(context, ref, themeMode);
+            },
           ),
           const Divider(height: 1),
           _SectionHeader('About'),
@@ -84,6 +91,66 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+
+  String _getThemeModeString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'System Default';
+      case ThemeMode.light:
+        return 'Light Mode';
+      case ThemeMode.dark:
+        return 'Dark Mode';
+    }
+  }
+
+  void _showThemeModeSelector(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Appearance',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                title: const Text('System Default'),
+                trailing: currentMode == ThemeMode.system ? const Icon(Icons.check, color: Colors.blue) : null,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(ThemeMode.system);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Light Mode'),
+                trailing: currentMode == ThemeMode.light ? const Icon(Icons.check, color: Colors.blue) : null,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(ThemeMode.light);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Dark Mode'),
+                trailing: currentMode == ThemeMode.dark ? const Icon(Icons.check, color: Colors.blue) : null,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(ThemeMode.dark);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -5,6 +5,7 @@ class ProjectModel extends Project {
     required super.id,
     required super.name,
     required super.description,
+    super.isStarred = false,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -14,6 +15,7 @@ class ProjectModel extends Project {
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      isStarred: json['is_starred'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? '') ?? DateTime.now(),
     );

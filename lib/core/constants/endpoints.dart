@@ -1,7 +1,7 @@
 class Endpoints {
   Endpoints._();
 
-  static const String baseUrl = 'http://10.226.177.227:8000/api/'; // Added trailing slash
+  static const String baseUrl = 'http://172.20.10.240:8000/api/'; // Added trailing slash
   static const int receiveTimeout = 15000;
   static const int connectionTimeout = 15000;
 
@@ -18,4 +18,10 @@ class Endpoints {
   // PATCH / DELETE use the same detail URL.
   static String renameProject(String id) => 'projects/$id/';
   static String deleteProject(String id) => 'projects/$id/';
+  static const String batchDeleteProjects = 'projects/batch-delete/';
+
+  // Items — flat endpoint for update/delete
+  // PATCH /api/items/{id}/   DELETE /api/items/{id}/
+  static String itemDetail(String itemId) => 'items/$itemId/';
+  static const String batchDeleteItems = 'items/batch-delete/';
 }

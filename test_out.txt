@@ -1,0 +1,33 @@
+﻿00:00 +0: loading C:/Users/DEll/Desktop/Startup/FounderN/mobile/test/widget_test.dart
+00:00 +0 -1: loading C:/Users/DEll/Desktop/Startup/FounderN/mobile/test/widget_test.dart [E]
+  Failed to load "C:/Users/DEll/Desktop/Startup/FounderN/mobile/test/widget_test.dart":
+  Compilation failed for testPath=C:/Users/DEll/Desktop/Startup/FounderN/mobile/test/widget_test.dart: lib/features/projects/presentation/screens/project_detail_screen.dart:6:8: Error: Error when reading 'lib/core/providers/selection_providers.dart': The system cannot find the file specified
+  import '../../../../core/providers/selection_providers.dart';
+         ^
+  lib/features/projects/presentation/screens/project_detail_screen.dart:130:38: Error: The getter 'itemSelectionProvider' isn't defined for the type 'ProjectDetailScreen'.
+   - 'ProjectDetailScreen' is from 'package:mobile/features/projects/presentation/screens/project_detail_screen.dart' ('lib/features/projects/presentation/screens/project_detail_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'itemSelectionProvider'.
+      final selectionState = ref.watch(itemSelectionProvider);
+                                       ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/projects/presentation/screens/project_detail_screen.dart:131:40: Error: The getter 'itemSelectionProvider' isn't defined for the type 'ProjectDetailScreen'.
+   - 'ProjectDetailScreen' is from 'package:mobile/features/projects/presentation/screens/project_detail_screen.dart' ('lib/features/projects/presentation/screens/project_detail_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'itemSelectionProvider'.
+      final selectionNotifier = ref.read(itemSelectionProvider.notifier);
+                                         ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/projects/presentation/screens/project_detail_screen.dart:270:24: Error: The getter 'itemSelectionProvider' isn't defined for the type 'ProjectDetailScreen'.
+   - 'ProjectDetailScreen' is from 'package:mobile/features/projects/presentation/screens/project_detail_screen.dart' ('lib/features/projects/presentation/screens/project_detail_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'itemSelectionProvider'.
+                ref.read(itemSelectionProvider.notifier).clearSelection();
+                         ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/projects/presentation/screens/project_detail_screen.dart:298:38: Error: The getter 'itemSelectionProvider' isn't defined for the type '_ItemsListView'.
+   - '_ItemsListView' is from 'package:mobile/features/projects/presentation/screens/project_detail_screen.dart' ('lib/features/projects/presentation/screens/project_detail_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'itemSelectionProvider'.
+      final selectionState = ref.watch(itemSelectionProvider);
+                                       ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/projects/presentation/screens/project_detail_screen.dart:299:40: Error: The getter 'itemSelectionProvider' isn't defined for the type '_ItemsListView'.
+   - '_ItemsListView' is from 'package:mobile/features/projects/presentation/screens/project_detail_screen.dart' ('lib/features/projects/presentation/screens/project_detail_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'itemSelectionProvider'.
+      final selectionNotifier = ref.read(itemSelectionProvider.notifier);
+                                         ^^^^^^^^^^^^^^^^^^^^^
+  .
+00:00 +0 -1: Some tests failed.
