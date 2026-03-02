@@ -86,7 +86,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: CustomScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
@@ -216,18 +216,18 @@ class _SearchBar extends StatelessWidget {
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
           hintText: 'Search projects, notes, links…',
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
-          prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
+          hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 15),
+          prefixIcon: Icon(Icons.search, color: theme.colorScheme.onSurfaceVariant, size: 20),
           suffixIcon: showClear
               ? IconButton(
                   icon: const Icon(Icons.close, size: 18),
-                  color: Colors.grey[500],
+                  color: theme.colorScheme.onSurfaceVariant,
                   onPressed: onClear,
                   tooltip: 'Clear',
                 )
               : null,
           filled: true,
-          fillColor: const Color(0xFFF0F0F0),
+          fillColor: theme.colorScheme.surfaceContainerHighest,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           border: OutlineInputBorder(
@@ -327,6 +327,7 @@ class _ItemSectionSliver extends ConsumerWidget {
 class _IdleSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SliverFillRemaining(
       hasScrollBody: false,
       child: Padding(
@@ -335,20 +336,20 @@ class _IdleSliver extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.manage_search_rounded,
-                size: 80, color: Colors.grey[200]),
+                size: 80, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
             const SizedBox(height: 20),
             Text(
               'Search everything',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.grey[400],
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Projects, notes and links all in one place',
-              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -365,6 +366,7 @@ class _NoResultsSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SliverFillRemaining(
       hasScrollBody: false,
       child: Padding(
@@ -372,20 +374,20 @@ class _NoResultsSliver extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded, size: 72, color: Colors.grey[200]),
+            Icon(Icons.search_off_rounded, size: 72, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
             const SizedBox(height: 20),
             Text(
               'No results for "$query"',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[500],
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Try a different keyword',
-              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
             ),
           ],
         ),

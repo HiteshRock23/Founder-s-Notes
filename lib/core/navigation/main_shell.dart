@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/projects/presentation/screens/projects_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
-import '../../features/starred/presentation/screens/starred_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,8 +35,7 @@ class MainShell extends ConsumerWidget {
   static const List<Widget> _screens = [
     ProjectsScreen(), // index 0
     SearchScreen(),   // index 1
-    StarredScreen(),  // index 2
-    SettingsScreen(), // index 3
+    SettingsScreen(), // index 2
   ];
 
   static const List<BottomNavigationBarItem> _navItems = [
@@ -50,11 +48,6 @@ class MainShell extends ConsumerWidget {
       icon: Icon(Icons.search_outlined),
       activeIcon: Icon(Icons.search),
       label: 'Search',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.star_border_rounded),
-      activeIcon: Icon(Icons.star_rounded),
-      label: 'Starred',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings_outlined),
@@ -81,8 +74,8 @@ class MainShell extends ConsumerWidget {
         onTap: (index) =>
             ref.read(shellIndexProvider.notifier).state = index,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2196F3),
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurfaceVariant,
         showUnselectedLabels: true,
         selectedFontSize: 11,
         unselectedFontSize: 11,

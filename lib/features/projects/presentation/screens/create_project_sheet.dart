@@ -188,7 +188,7 @@ class _CreateProjectSheetState extends ConsumerState<CreateProjectSheet> {
                   ),
                 ),
                 child: _isSubmitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(

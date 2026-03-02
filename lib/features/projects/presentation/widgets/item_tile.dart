@@ -164,7 +164,9 @@ class ItemTile extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.blue.withValues(alpha: 0.1) : Colors.white,
+        color: isSelected
+            ? Colors.blue.withValues(alpha: 0.1)
+            : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected ? Colors.blue : Colors.grey.withValues(alpha: 0.12),

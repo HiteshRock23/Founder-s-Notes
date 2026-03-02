@@ -113,6 +113,7 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final canUpload = _pickedFile != null && !_isUploading;
 
