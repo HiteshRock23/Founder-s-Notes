@@ -1,7 +1,9 @@
 class Endpoints {
   Endpoints._();
 
-  static const String baseUrl = 'http://172.20.10.240:8000/api/'; // Added trailing slash
+  // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
+  // Change to your PC's LAN IP (e.g. 192.168.x.x) if testing on a physical device.
+  static const String baseUrl = 'http://172.20.10.108:8000/api/';
   static const int receiveTimeout = 15000;
   static const int connectionTimeout = 15000;
 
@@ -24,4 +26,7 @@ class Endpoints {
   // PATCH /api/items/{id}/   DELETE /api/items/{id}/
   static String itemDetail(String itemId) => 'items/$itemId/';
   static const String batchDeleteItems = 'items/batch-delete/';
+
+  // Metadata
+  static const String extractMetadata = 'metadata/extract/';
 }

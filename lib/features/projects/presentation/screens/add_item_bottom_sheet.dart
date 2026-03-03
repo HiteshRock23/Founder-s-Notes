@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -5,7 +6,9 @@ import 'package:path/path.dart' as p;
 import '../../domain/entities/item.dart';
 import '../providers/project_provider.dart';
 import '../../../../shared/widgets/app_text_field.dart';
-import '../../../../core/errors/api_exception.dart';
+import 'package:mobile/core/errors/api_exception.dart';
+import 'package:mobile/core/network/dio_client.dart';
+import 'package:mobile/core/constants/endpoints.dart';
 
 /// Modal bottom sheet for adding a new item (Note or Link) to a project.
 ///
@@ -43,11 +46,24 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
   bool _isSubmitting = false;
   String? _serverError;
 
+  // Metadata state
+  Timer? _debounceTimer;
+  bool _isFetchingMetadata = false;
+  String _lastFetchedUrl = '';
+
   // File-type state
   PlatformFile? _pickedFile;
 
   @override
+  void initState() {
+    super.initState();
+    _urlController.addListener(_onUrlChanged);
+  }
+
+  @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _urlController.removeListener(_onUrlChanged);
     _titleController.dispose();
     _contentController.dispose();
     _urlController.dispose();
@@ -69,6 +85,58 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
               p.basenameWithoutExtension(_pickedFile!.name);
         }
       });
+    }
+  }
+
+  // ──────────────────────────────────────────────────────
+  // Metadata Engine
+  // ──────────────────────────────────────────────────────
+
+  void _onUrlChanged() {
+    if (_selectedType != ItemType.link) return;
+
+    final url = _urlController.text.trim();
+    if (url.isEmpty || url == _lastFetchedUrl) return;
+
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) return;
+
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 800), () {
+      _fetchMetadata(url);
+    });
+  }
+
+  Future<void> _fetchMetadata(String url) async {
+    if (!mounted) return;
+    setState(() => _isFetchingMetadata = true);
+
+    try {
+      final dio = ref.read(dioClientProvider);
+      final response = await dio.post(
+        Endpoints.extractMetadata,
+        data: {'url': url},
+      );
+      
+      if (response.statusCode == 200 && response.data['status'] == 'success') {
+        _lastFetchedUrl = url;
+        
+        // Auto-fill Title and Description if they are currently pristine/empty
+        if (mounted) {
+          setState(() {
+            if (_titleController.text.trim().isEmpty && response.data['title'] != null) {
+              _titleController.text = response.data['title'];
+            }
+            if (_descriptionController.text.trim().isEmpty && response.data['description'] != null) {
+              _descriptionController.text = response.data['description'];
+            }
+          });
+        }
+      }
+    } catch (_) {
+      // Silently fail metadata fetch -- it's a progressive enhancement
+    } finally {
+      if (mounted) setState(() => _isFetchingMetadata = false);
     }
   }
 
@@ -235,6 +303,15 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
                 hintText: 'https://example.com',
                 controller: _urlController,
                 keyboardType: TextInputType.url,
+                suffixIcon: _isFetchingMetadata 
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16, height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'URL is required';
                   final uri = Uri.tryParse(v.trim());
