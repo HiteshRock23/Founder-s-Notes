@@ -1,9 +1,12 @@
 class Endpoints {
   Endpoints._();
 
+  // Current connection strategy: Use adb reverse for physical devices via USB.
+  // Command: adb reverse tcp:8000 tcp:8000
+  // 127.0.0.1 works for physical devices (with adb reverse) and Simulators.
+  // 10.0.2.2 is for Android Emulators.
   // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
-  // Change to your PC's LAN IP (e.g. 192.168.x.x) if testing on a physical device.
-  static const String baseUrl = 'http://172.20.10.108:8000/api/';
+  static const String baseUrl = 'http://10.0.2.2:8000/api/';
   static const int receiveTimeout = 15000;
   static const int connectionTimeout = 15000;
 

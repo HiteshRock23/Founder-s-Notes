@@ -134,7 +134,15 @@ class DioClient {
   ApiException _handleError(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
-      return NetworkException(message: 'Request timed out');
+      return NetworkException(
+        message: 'Request timed out connecting to ${e.requestOptions.uri}. Check if your backend is running and reachable.',
+      );
+    }
+
+    if (e.type == DioExceptionType.connectionError) {
+      return NetworkException(
+        message: 'Connection refused/failed for ${e.requestOptions.uri}. If using a physical device, ensure you ran "adb reverse tcp:8000 tcp:8000".',
+      );
     }
 
     if (e.response != null) {
@@ -144,8 +152,6 @@ class DioClient {
       if (statusCode == 401) return UnauthenticatedException();
 
       if (statusCode == 400) {
-        // Extract human-readable message from Django validation errors.
-        // Django returns: {'field': ['error msg']} or {'non_field_errors': [...]}
         final errorMsg = _extractDjangoErrors(data);
         return ValidationException(
           message: errorMsg,
@@ -154,12 +160,14 @@ class DioClient {
       }
 
       return ApiException(
-        message: data?['message'] ?? data?['detail'] ?? 'Unexpected error occurred',
+        message: data?['message'] ?? data?['detail'] ?? 'Unexpected error occurred (Status: $statusCode)',
         statusCode: statusCode,
       );
     }
 
-    return ApiException(message: 'Network error: ${e.message}');
+    return ApiException(
+      message: 'Network error: ${e.message}\nTarget: ${e.requestOptions.uri}',
+    );
   }
 
   /// Converts Django's field-error map into a single readable string.
