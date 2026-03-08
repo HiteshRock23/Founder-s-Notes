@@ -6,7 +6,7 @@ class Endpoints {
   // 127.0.0.1 works for physical devices (with adb reverse) and Simulators.
   // 10.0.2.2 is for Android Emulators.
   // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
-  static const String baseUrl = "https://foundernotes.lyrprompt.cloud";
+  static const String baseUrl = "https://foundernotes.lyrprompt.cloud/api";
   static const int receiveTimeout = 15000;
   static const int connectionTimeout = 15000;
 
