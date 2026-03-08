@@ -32,11 +32,16 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          print("REQUEST: ${options.method} ${options.uri}");
           final token = await _storage.getAccessToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
+        },
+        onResponse: (response, handler) {
+          print("RESPONSE: ${response.statusCode} ${response.requestOptions.uri}");
+          return handler.next(response);
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
@@ -141,7 +146,7 @@ class DioClient {
 
     if (e.type == DioExceptionType.connectionError) {
       return NetworkException(
-        message: 'Connection refused/failed for ${e.requestOptions.uri}. If using a physical device, ensure you ran "adb reverse tcp:8000 tcp:8000".',
+        message: 'Network connection failed while calling ${e.requestOptions.uri}. Check internet connectivity or server availability.',
       );
     }
 

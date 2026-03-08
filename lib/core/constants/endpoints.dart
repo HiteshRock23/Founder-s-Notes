@@ -7,8 +7,8 @@ class Endpoints {
   // 10.0.2.2 is for Android Emulators.
   // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
   static const String baseUrl = "https://foundernotes.lyrprompt.cloud/api/";
-  static const int receiveTimeout = 15000;
-  static const int connectionTimeout = 15000;
+  static const int receiveTimeout = 30000;
+  static const int connectionTimeout = 30000;
 
   // Auth
   static const String login = 'auth/login/';
