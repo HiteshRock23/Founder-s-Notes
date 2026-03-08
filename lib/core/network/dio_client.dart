@@ -159,8 +159,17 @@ class DioClient {
         );
       }
 
+      // Safely extract message or detail if data is a Map
+      String? message;
+      if (data is Map) {
+        message = data['message']?.toString() ?? data['detail']?.toString();
+      } else if (data is List && data.isNotEmpty) {
+        // If it's a list, use the first item or a generic message
+        message = data.first.toString();
+      }
+
       return ApiException(
-        message: data?['message'] ?? data?['detail'] ?? 'Unexpected error occurred (Status: $statusCode)',
+        message: message ?? 'Unexpected error occurred (Status: $statusCode)',
         statusCode: statusCode,
       );
     }

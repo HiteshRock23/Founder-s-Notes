@@ -54,8 +54,22 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
   @override
   Future<List<ProjectModel>> getProjects() async {
     final response = await _dioClient.get(Endpoints.projects);
-    final List<dynamic> data = response.data as List<dynamic>;
-    return data
+    final dynamic responseData = response.data;
+
+    List<dynamic> list;
+    if (responseData is List) {
+      list = responseData;
+    } else if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('projects') &&
+        responseData['projects'] is List) {
+      // Handle the case where the response is a Map like {"projects": [...]}
+      list = responseData['projects'] as List<dynamic>;
+    } else {
+      // Fallback or throw if format is completely unexpected
+      throw Exception('Unexpected response format for projects: ${responseData.runtimeType}');
+    }
+
+    return list
         .map((json) => ProjectModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
