@@ -11,17 +11,17 @@ class MetadataRepository {
   final DioClient _dioClient;
 
   MetadataRepository(this._dioClient);
-Future<MetadataModel> extractMetadata(String url) async {
-  print("Calling metadata API: ${Endpoints.extractMetadata}");
-  print("URL: $url");
+  Future<MetadataModel> extractMetadata(String url) async {
+    print("Calling metadata API: ${Endpoints.extractMetadata}");
+    print("URL: $url");
 
-  final response = await _dioClient.post(
-    Endpoints.extractMetadata,
-    data: {'url': url},
-  );
+    final response = await _dioClient.post(
+      Endpoints.extractMetadata,
+      data: {'url': url},
+    );
 
-  print("Metadata response: ${response.data}");
+    print("Metadata response: ${response.data}");
 
-  return MetadataModel.fromJson(response.data as Map<String, dynamic>);
-}
+    return MetadataModel.fromJson(response.data as Map<String, dynamic>);
+  }
 }

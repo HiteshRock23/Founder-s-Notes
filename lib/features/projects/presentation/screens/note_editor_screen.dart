@@ -22,7 +22,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.item.title);
     _contentController = TextEditingController(text: widget.item.content ?? '');
-    
+
     _titleController.addListener(_onChanged);
     _contentController.addListener(_onChanged);
   }
@@ -78,7 +78,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // Requirements: Disable if nothing changed / empty title / is saving.
-    final canSave = _hasChanges && !_isSaving && _titleController.text.trim().isNotEmpty;
+    final canSave =
+        _hasChanges && !_isSaving && _titleController.text.trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -99,16 +100,16 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             )
           else
             TextButton(
-               onPressed: canSave ? _save : null,
-               style: TextButton.styleFrom(
-                 foregroundColor: Colors.blue.shade700,
-                 disabledForegroundColor: Colors.grey.shade400,
-                 padding: const EdgeInsets.symmetric(horizontal: 16),
-               ),
-               child: const Text(
-                 'Save',
-                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-               ),
+              onPressed: canSave ? _save : null,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue.shade700,
+                disabledForegroundColor: Colors.grey.shade400,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              child: const Text(
+                'Save',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
             ),
         ],
       ),
@@ -116,7 +117,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: TextField(
                 controller: _titleController,
                 style: const TextStyle(

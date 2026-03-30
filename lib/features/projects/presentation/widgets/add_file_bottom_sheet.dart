@@ -46,7 +46,14 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
   String? _serverError;
 
   // Allowed extensions
-  static const _allowedExtensions = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg'];
+  static const _allowedExtensions = [
+    'pdf',
+    'doc',
+    'docx',
+    'png',
+    'jpg',
+    'jpeg'
+  ];
 
   @override
   void dispose() {
@@ -60,7 +67,7 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExtensions,
-      withData: false,   // don't load bytes into memory — use path for upload
+      withData: false, // don't load bytes into memory — use path for upload
       withReadStream: false,
     );
 
@@ -69,8 +76,7 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
         _pickedFile = result.files.first;
         // Pre-fill title with filename (without extension) if title is empty
         if (_titleController.text.trim().isEmpty) {
-          _titleController.text =
-              p.basenameWithoutExtension(_pickedFile!.name);
+          _titleController.text = p.basenameWithoutExtension(_pickedFile!.name);
         }
       });
     }
@@ -102,9 +108,8 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
     } catch (e) {
       setState(() {
         _isUploading = false;
-        _serverError = e is ApiException
-            ? e.message
-            : 'Upload failed. Please try again.';
+        _serverError =
+            e is ApiException ? e.message : 'Upload failed. Please try again.';
       });
     }
   }
@@ -170,8 +175,8 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
               decoration: InputDecoration(
                 labelText: 'Title',
                 hintText: 'e.g. Q1 Report',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               ),
@@ -190,7 +195,8 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 color: theme.colorScheme.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _pickedFile != null
@@ -269,8 +275,7 @@ class _AddFileBottomSheetState extends ConsumerState<AddFileBottomSheet> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 14, color: Colors.red),
+                  const Icon(Icons.error_outline, size: 14, color: Colors.red),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(

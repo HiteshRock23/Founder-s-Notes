@@ -13,7 +13,9 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 
   void _loadTheme() {
     final themeIndex = _prefs.getInt(_themeKey);
-    if (themeIndex != null && themeIndex >= 0 && themeIndex < ThemeMode.values.length) {
+    if (themeIndex != null &&
+        themeIndex >= 0 &&
+        themeIndex < ThemeMode.values.length) {
       state = ThemeMode.values[themeIndex];
     }
   }
@@ -27,7 +29,8 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 // Ensure SharedPreferences is initialized before the app runs and overrides
 // this provider with the actual instance in ProviderScope.
 final sharedPrefsProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPrefsProvider must be overridden in ProviderScope');
+  throw UnimplementedError(
+      'sharedPrefsProvider must be overridden in ProviderScope');
 });
 
 final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {

@@ -25,7 +25,7 @@ class AddItemBottomSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context, String projectId) {
     return showModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,       // lets sheet resize above keyboard
+      isScrollControlled: true, // lets sheet resize above keyboard
       backgroundColor: Colors.transparent,
       builder: (_) => AddItemBottomSheet._(projectId: projectId),
     );
@@ -81,8 +81,7 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
       setState(() {
         _pickedFile = result.files.first;
         if (_titleController.text.trim().isEmpty) {
-          _titleController.text =
-              p.basenameWithoutExtension(_pickedFile!.name);
+          _titleController.text = p.basenameWithoutExtension(_pickedFile!.name);
         }
       });
     }
@@ -117,17 +116,19 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
         Endpoints.extractMetadata,
         data: {'url': url},
       );
-      
+
       if (response.statusCode == 200 && response.data['status'] == 'success') {
         _lastFetchedUrl = url;
-        
+
         // Auto-fill Title and Description if they are currently pristine/empty
         if (mounted) {
           setState(() {
-            if (_titleController.text.trim().isEmpty && response.data['title'] != null) {
+            if (_titleController.text.trim().isEmpty &&
+                response.data['title'] != null) {
               _titleController.text = response.data['title'];
             }
-            if (_descriptionController.text.trim().isEmpty && response.data['description'] != null) {
+            if (_descriptionController.text.trim().isEmpty &&
+                response.data['description'] != null) {
               _descriptionController.text = response.data['description'];
             }
           });
@@ -161,9 +162,7 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
           });
           return;
         }
-        await ref
-            .read(addItemProvider(widget.projectId).notifier)
-            .addFileItem(
+        await ref.read(addItemProvider(widget.projectId).notifier).addFileItem(
               title: _titleController.text.trim(),
               filePath: filePath,
               fileName: _pickedFile!.name,
@@ -213,7 +212,6 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
   // ──────────────────────────────────────────────────────
   // Build
   // ──────────────────────────────────────────────────────
-
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +279,8 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
               controller: _titleController,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Title is required';
-                if (v.trim().length < 2) return 'Title must be at least 2 characters';
+                if (v.trim().length < 2)
+                  return 'Title must be at least 2 characters';
                 return null;
               },
             ),
@@ -303,11 +302,12 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
                 hintText: 'https://example.com',
                 controller: _urlController,
                 keyboardType: TextInputType.url,
-                suffixIcon: _isFetchingMetadata 
+                suffixIcon: _isFetchingMetadata
                     ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
-                          width: 16, height: 16,
+                          width: 16,
+                          height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       )
@@ -334,8 +334,8 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: _pickedFile != null
@@ -386,8 +386,7 @@ class _AddItemBottomSheetState extends ConsumerState<AddItemBottomSheet> {
                   padding: const EdgeInsets.only(top: 4, left: 4),
                   child: Text(
                     _formatBytes(_pickedFile!.size),
-                    style:
-                        TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                   ),
                 ),
             ],

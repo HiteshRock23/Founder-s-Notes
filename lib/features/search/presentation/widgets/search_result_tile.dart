@@ -154,7 +154,8 @@ class SearchResultTile extends StatelessWidget {
 
             // ── Chevron ────────────────────────────────────────────────────
             const SizedBox(width: 6),
-            Icon(Icons.chevron_right, color: theme.colorScheme.outlineVariant, size: 18),
+            Icon(Icons.chevron_right,
+                color: theme.colorScheme.outlineVariant, size: 18),
           ],
         ),
       ),
@@ -180,7 +181,8 @@ class _ProjectChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.folder_outlined, size: 10, color: theme.colorScheme.onSurfaceVariant),
+          Icon(Icons.folder_outlined,
+              size: 10, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 4),
           Flexible(
             child: Text(

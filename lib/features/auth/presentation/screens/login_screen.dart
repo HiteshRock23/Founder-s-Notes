@@ -40,9 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // Listen for auth state changes
     ref.listen(authProvider, (previous, next) {
-      if (next.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/dashboard');
-      } else if (next.error != null) {
+      if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
@@ -61,13 +59,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 80), // Premium top spacing
-              
+
               // App Icon
               Container(
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  color:
+                      theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
@@ -77,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // App Name & Tagline
               Text(
                 'Founder Hub',
@@ -94,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 48),
-              
+
               // Login Card
               Container(
                 padding: const EdgeInsets.all(24),
@@ -121,13 +120,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Email is required';
-                          if (!value.contains('@')) return 'Enter a valid email';
+                          if (value == null || value.isEmpty)
+                            return 'Email is required';
+                          if (!value.contains('@'))
+                            return 'Enter a valid email';
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Password Label + Forgot Password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,7 +138,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
@@ -160,7 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Password Field
                       AppTextField(
                         label: '', // Label handled above for spacing
@@ -169,48 +171,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             size: 20,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.4),
                           ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Password is required';
+                          if (value == null || value.isEmpty)
+                            return 'Password is required';
                           return null;
                         },
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Sign In Button
                       PrimaryButton(
                         text: 'Sign In',
                         isLoading: authState.isLoading,
                         onPressed: _handleLogin,
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider(color: theme.colorScheme.outline.withValues(alpha: 0.1))),
+                          Expanded(
+                              child: Divider(
+                                  color: theme.colorScheme.outline
+                                      .withValues(alpha: 0.1))),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'OR',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.3),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          Expanded(child: Divider(color: theme.colorScheme.outline.withValues(alpha: 0.1))),
+                          Expanded(
+                              child: Divider(
+                                  color: theme.colorScheme.outline
+                                      .withValues(alpha: 0.1))),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Google Button
                       SizedBox(
                         width: double.infinity,
@@ -218,7 +232,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
+                            side: BorderSide(
+                                color: theme.colorScheme.outline
+                                    .withValues(alpha: 0.2)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -240,16 +256,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Sign Up Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account?",
-                    style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    style: TextStyle(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/signup'),
@@ -264,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              
+
               // Footer
               Text(
                 'By signing in, you agree to our Terms and Privacy Policy.',

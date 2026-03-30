@@ -29,5 +29,6 @@ class AuthState {
   }
 
   @override
-  String toString() => 'AuthState(isAuthenticated: $isAuthenticated, isLoading: $isLoading, error: $error)';
+  String toString() =>
+      'AuthState(isAuthenticated: $isAuthenticated, isLoading: $isLoading, error: $error)';
 }

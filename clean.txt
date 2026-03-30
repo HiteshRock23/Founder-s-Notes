@@ -1,0 +1,7 @@
+  error - lib\features\projects\presentation\widgets\project_card.dart:209:7 - Expected to find ';'. - expected_token
+  error - lib\features\projects\presentation\widgets\project_card.dart:209:8 - Expected an identifier. - missing_identifier
+  error - lib\features\projects\presentation\widgets\project_card.dart:209:8 - Expected to find ';'. - expected_token
+  error - lib\features\projects\presentation\widgets\project_card.dart:209:8 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - lib\features\projects\presentation\widgets\project_card.dart:210:5 - Expected an identifier. - missing_identifier
+  error - lib\features\projects\presentation\widgets\project_card.dart:210:5 - Unexpected text ';'. Try removing the text. - unexpected_token
+warning - lib\features\projects\presentation\widgets\project_card.dart:209:8 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code

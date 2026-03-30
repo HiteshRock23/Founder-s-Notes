@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/project_provider.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../domain/entities/project.dart';
 
 /// Shows a modal bottom sheet for creating a new project.
 ///
@@ -12,8 +13,8 @@ import '../../../../shared/widgets/app_text_field.dart';
 class CreateProjectSheet extends ConsumerStatefulWidget {
   const CreateProjectSheet._();
 
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet<void>(
+  static Future<Project?> show(BuildContext context) {
+    return showModalBottomSheet<Project?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -47,14 +48,15 @@ class _CreateProjectSheetState extends ConsumerState<CreateProjectSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      await ref.read(projectsListProvider.notifier).createProject(
-            _nameController.text.trim(),
-            _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
-          );
+      final newProject =
+          await ref.read(projectsListProvider.notifier).createProject(
+                _nameController.text.trim(),
+                _descriptionController.text.trim().isEmpty
+                    ? null
+                    : _descriptionController.text.trim(),
+              );
 
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop(newProject);
     } catch (e) {
       // Display the backend error message inline — no SnackBar race condition.
       setState(() {

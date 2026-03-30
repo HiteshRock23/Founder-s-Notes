@@ -10,8 +10,8 @@ import 'package:mobile/features/projects/presentation/screens/note_editor_screen
 // ─────────────────────────────────────────────────────────────────────────────
 // ItemTile — displays one item in the project timeline.
 //
-// • Tap    → open link / file in external app / snackbar for notes
-// • Long press → action sheet with Edit and Delete options
+// • Tap       → open link / file in external app / open note editor
+// • Long press → enters selection mode
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ItemTile extends ConsumerWidget {
@@ -117,9 +117,7 @@ class ItemTile extends ConsumerWidget {
 
   Future<void> _doDelete(BuildContext context, WidgetRef ref) async {
     try {
-      await ref
-          .read(addItemProvider(projectId).notifier)
-          .deleteItem(item.id);
+      await ref.read(addItemProvider(projectId).notifier).deleteItem(item.id);
       if (context.mounted) {
         _showSnackBar(context, '$_typeName deleted.');
       }
@@ -153,121 +151,156 @@ class ItemTile extends ConsumerWidget {
     }
   }
 
-
-
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDimmed = isSelectionMode && !isSelected;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? Colors.blue.withValues(alpha: 0.1)
-            : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected ? Colors.blue : Colors.grey.withValues(alpha: 0.12),
-          width: isSelected ? 2 : 1,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          if (isSelectionMode) {
-            onSelectionToggle?.call();
-          } else {
-            _handleTap(context);
-          }
-        },
-        onLongPress: () {
-          if (!isSelectionMode) {
-            onLongPressToggle?.call();
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              _ItemTypeIcon(type: item.type),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
+    return AnimatedScale(
+      scale: isSelected ? 0.98 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      child: AnimatedOpacity(
+        opacity: isDimmed ? 0.6 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? theme.colorScheme.primaryContainer.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.2 : 0.4)
+                : theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : Colors.grey.withValues(alpha: 0.12),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
-                    if (item.subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        item.subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color:
-                              theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                          fontSize: 12,
+                  ]
+                : [],
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              if (isSelectionMode) {
+                onSelectionToggle?.call();
+              } else {
+                _handleTap(context);
+              }
+            },
+            onLongPress: () {
+              if (!isSelectionMode) {
+                onLongPressToggle?.call();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  _ItemTypeIcon(type: item.type),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (isSelectionMode)
-                Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: isSelected ? Colors.blue : Colors.grey[400],
-                )
-              else
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_horiz, color: Colors.black54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      EditItemBottomSheet.show(context, item, projectId);
-                    } else if (value == 'delete') {
-                      _confirmDelete(context, ref);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
-                          SizedBox(width: 10),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline,
-                              size: 18, color: Colors.red[600]),
-                          const SizedBox(width: 10),
+                        if (item.subtitle.isNotEmpty) ...[
+                          const SizedBox(height: 2),
                           Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red[600]),
+                            item.subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.5),
+                              fontSize: 12,
+                            ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-            ],
+                  ),
+                  const SizedBox(width: 8),
+                  if (isSelectionMode)
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        isSelected
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked,
+                        key: ValueKey(isSelected),
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : Colors.grey[400],
+                        size: 24,
+                      ),
+                    )
+                  else
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_horiz,
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          EditItemBottomSheet.show(context, item, projectId);
+                        } else if (value == 'delete') {
+                          _confirmDelete(context, ref);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 18, color: Colors.black87),
+                              SizedBox(width: 10),
+                              Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -283,20 +316,24 @@ class _ItemTypeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (icon, bg) = switch (type) {
-      ItemType.note => (Icons.description_outlined, const Color(0xFFE8F5E9)),
-      ItemType.link => (Icons.public, const Color(0xFFE3F2FD)),
-      ItemType.file =>
-        (Icons.insert_drive_file_outlined, const Color(0xFFFFF3E0)),
+    final theme = Theme.of(context);
+    final (icon, color) = switch (type) {
+      ItemType.note => (Icons.description_outlined, const Color(0xFF4CAF50)),
+      ItemType.link => (Icons.public, const Color(0xFF2196F3)),
+      ItemType.file => (
+          Icons.insert_drive_file_outlined,
+          const Color(0xFFFF9800)
+        ),
     };
 
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: bg,
+        color: color.withValues(
+            alpha: theme.brightness == Brightness.dark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(icon, color: const Color(0xFF2196F3), size: 22),
+      child: Icon(icon, color: color, size: 22),
     );
   }
 }

@@ -46,8 +46,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// For items, we look up the parent project and open its detail screen.
   void _openItemProject(BuildContext context, Item item) {
-    final projects =
-        ref.read(projectsListProvider).valueOrNull ?? [];
+    final projects = ref.read(projectsListProvider).valueOrNull ?? [];
     final parent = projects.cast<Project?>().firstWhere(
           (p) => p?.id == item.projectId,
           orElse: () => null,
@@ -216,8 +215,10 @@ class _SearchBar extends StatelessWidget {
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
           hintText: 'Search projects, notes, links…',
-          hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 15),
-          prefixIcon: Icon(Icons.search, color: theme.colorScheme.onSurfaceVariant, size: 20),
+          hintStyle: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant, fontSize: 15),
+          prefixIcon: Icon(Icons.search,
+              color: theme.colorScheme.onSurfaceVariant, size: 20),
           suffixIcon: showClear
               ? IconButton(
                   icon: const Icon(Icons.close, size: 18),
@@ -265,8 +266,7 @@ class _SectionHeaderSliver extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
               decoration: BoxDecoration(
                 color: const Color(0xFF2196F3).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
@@ -304,12 +304,12 @@ class _ItemSectionSliver extends ConsumerWidget {
         (context, i) {
           final item = items[i];
           final projectName = projects
-              .cast<Project?>()
-              .firstWhere(
-                (p) => p?.id == item.projectId,
-                orElse: () => null,
-              )
-              ?.name ??
+                  .cast<Project?>()
+                  .firstWhere(
+                    (p) => p?.id == item.projectId,
+                    orElse: () => null,
+                  )
+                  ?.name ??
               'Unknown project';
           return SearchResultTile.forItem(
             item: item,
@@ -336,7 +336,9 @@ class _IdleSliver extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.manage_search_rounded,
-                size: 80, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
+                size: 80,
+                color:
+                    theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
             const SizedBox(height: 20),
             Text(
               'Search everything',
@@ -349,7 +351,10 @@ class _IdleSliver extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Projects, notes and links all in one place',
-              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.7)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -374,7 +379,10 @@ class _NoResultsSliver extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded, size: 72, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
+            Icon(Icons.search_off_rounded,
+                size: 72,
+                color:
+                    theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
             const SizedBox(height: 20),
             Text(
               'No results for "$query"',
@@ -387,7 +395,10 @@ class _NoResultsSliver extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Try a different keyword',
-              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.7)),
             ),
           ],
         ),

@@ -95,7 +95,8 @@ class ProjectRepositoryImpl implements ProjectRepository {
     required List<String> itemIds,
     required String projectId,
   }) async {
-    return remoteDataSource.deleteMultipleItems(itemIds: itemIds, projectId: projectId);
+    return remoteDataSource.deleteMultipleItems(
+        itemIds: itemIds, projectId: projectId);
   }
 
   @override
@@ -117,4 +118,3 @@ class ProjectRepositoryImpl implements ProjectRepository {
     );
   }
 }
-

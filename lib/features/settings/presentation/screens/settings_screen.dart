@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../../features/settings/presentation/providers/settings_provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// SettingsScreen — app configuration, account management, and about info.
 ///
@@ -13,6 +16,19 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final themeMode = ref.watch(themeProvider);
+    final settingsState = ref.watch(settingsProvider);
+
+    // Show error snackbar if user fetch failed
+    ref.listen(settingsProvider, (previous, next) {
+      if (next.error != null && previous?.error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: theme.colorScheme.error,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -29,12 +45,35 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         children: [
           _SectionHeader('Account'),
-          _SettingsTile(
-            icon: Icons.person_outline,
-            title: 'Profile',
-            subtitle: 'Name, email and avatar',
-            onTap: () {},
-          ),
+          if (settingsState.isLoading && settingsState.user == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Shimmer.fromColors(
+                baseColor: theme.colorScheme.surfaceContainerHigh,
+                highlightColor: theme.colorScheme.surfaceContainerHighest,
+                child: Row(
+                  children: [
+                    Container(width: 24, height: 24, color: Colors.white),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(width: 120, height: 16, color: Colors.white),
+                        const SizedBox(height: 4),
+                        Container(width: 180, height: 12, color: Colors.white),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            _SettingsTile(
+              icon: Icons.person_outline,
+              title: settingsState.user?.name ?? 'Unknown',
+              subtitle: settingsState.user?.email ?? 'No email available',
+              onTap: () {},
+            ),
           _SettingsTile(
             icon: Icons.lock_outline,
             title: 'Change Password',
@@ -49,12 +88,24 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () {},
           ),
           _SettingsTile(
-            icon: Icons.color_lens_outlined,
-            title: 'Appearance',
-            subtitle: _getThemeModeString(themeMode),
-            onTap: () {
-              _showThemeModeSelector(context, ref, themeMode);
+            icon: Icons.notifications_none_rounded,
+            title: 'Notifications',
+            subtitle: 'Push and email alerts',
+            onTap: () {},
+          ),
+          SwitchListTile(
+            title: const Text('Dark Mode',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+            value: themeMode == ThemeMode.dark,
+            onChanged: (value) {
+              ref
+                  .read(themeProvider.notifier)
+                  .setTheme(value ? ThemeMode.dark : ThemeMode.light);
             },
+            secondary: const Icon(Icons.dark_mode_outlined,
+                color: Color(0xFF2196F3), size: 22),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            activeTrackColor: const Color(0xFF2196F3),
           ),
           const Divider(height: 1),
           _SectionHeader('About'),
@@ -73,7 +124,7 @@ class SettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: () => _showLogoutDialog(context, ref),
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text(
                 'Sign Out',
@@ -94,61 +145,30 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  String _getThemeModeString(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return 'System Default';
-      case ThemeMode.light:
-        return 'Light Mode';
-      case ThemeMode.dark:
-        return 'Dark Mode';
-    }
-  }
-
-  void _showThemeModeSelector(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
-    showModalBottomSheet(
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  'Appearance',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ListTile(
-                title: const Text('System Default'),
-                trailing: currentMode == ThemeMode.system ? const Icon(Icons.check, color: Colors.blue) : null,
-                onTap: () {
-                  ref.read(themeProvider.notifier).setTheme(ThemeMode.system);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Light Mode'),
-                trailing: currentMode == ThemeMode.light ? const Icon(Icons.check, color: Colors.blue) : null,
-                onTap: () {
-                  ref.read(themeProvider.notifier).setTheme(ThemeMode.light);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Dark Mode'),
-                trailing: currentMode == ThemeMode.dark ? const Icon(Icons.check, color: Colors.blue) : null,
-                onTap: () {
-                  ref.read(themeProvider.notifier).setTheme(ThemeMode.dark);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close dialog
+                await ref.read(authProvider.notifier).logout();
+                if (context.mounted) {
+                  Navigator.of(context, rootNavigator: true)
+                      .pushNamedAndRemoveUntil('/login', (route) => false);
+                }
+              },
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         );
       },
     );

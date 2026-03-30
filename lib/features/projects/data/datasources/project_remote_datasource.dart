@@ -66,7 +66,8 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
       list = responseData['projects'] as List<dynamic>;
     } else {
       // Fallback or throw if format is completely unexpected
-      throw Exception('Unexpected response format for projects: ${responseData.runtimeType}');
+      throw Exception(
+          'Unexpected response format for projects: ${responseData.runtimeType}');
     }
 
     return list
@@ -129,7 +130,8 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
   @override
   Future<ProjectModel> toggleStar(String projectId, bool isStarred) async {
     final response = await _dioClient.patch(
-      Endpoints.renameProject(projectId), // Same endpoint as rename (PATCH /api/projects/{id}/)
+      Endpoints.renameProject(
+          projectId), // Same endpoint as rename (PATCH /api/projects/{id}/)
       data: {'is_starred': isStarred},
     );
     return ProjectModel.fromJson(response.data as Map<String, dynamic>);
@@ -237,7 +239,8 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     final body = <String, dynamic>{
       'type': type.name, // 'note' | 'link' | 'file'
       'title': title.trim(),
-      if (content != null && content.trim().isNotEmpty) 'content': content.trim(),
+      if (content != null && content.trim().isNotEmpty)
+        'content': content.trim(),
       if (url != null && url.trim().isNotEmpty) 'url': url.trim(),
       if (description != null && description.trim().isNotEmpty)
         'description': description.trim(),

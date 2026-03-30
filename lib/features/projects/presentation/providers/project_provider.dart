@@ -6,12 +6,14 @@ import '../../domain/entities/item.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../../data/datasources/project_remote_datasource.dart';
 import '../../data/repositories/project_repository_impl.dart';
+import 'package:share_plus/share_plus.dart';
 
 // ──────────────────────────────────────────────
 // Dependency Injection Graph
 // ──────────────────────────────────────────────
 
-final projectRemoteDataSourceProvider = Provider<ProjectRemoteDataSource>((ref) {
+final projectRemoteDataSourceProvider =
+    Provider<ProjectRemoteDataSource>((ref) {
   return ProjectRemoteDataSourceImpl(ref.watch(dioClientProvider));
 });
 
@@ -45,11 +47,12 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
 
   // ── Create ────────────────────────────────
   /// Creates a project and inserts it at the top — no full refetch.
-  Future<void> createProject(String name, String? description) async {
+  Future<Project> createProject(String name, String? description) async {
     final currentList = state.valueOrNull ?? [];
     try {
       final newProject = await _repository.createProject(name, description);
       state = AsyncValue.data([newProject, ...currentList]);
+      return newProject;
     } catch (e, stack) {
       state = AsyncValue.data(currentList);
       Error.throwWithStackTrace(e, stack);
@@ -105,6 +108,41 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  // ── Share Selected ────────────────────────
+  Future<void> shareSelectedProjects(Set<String> selectedIds) async {
+    final currentList = state.valueOrNull ?? [];
+    if (currentList.isEmpty || selectedIds.isEmpty) return;
+
+    final selectedProjects =
+        currentList.where((p) => selectedIds.contains(p.id)).toList();
+    if (selectedProjects.isEmpty) return;
+
+    final StringBuffer buffer = StringBuffer();
+
+    if (selectedProjects.length == 1) {
+      final p = selectedProjects.first;
+      buffer.writeln('Project: ${p.name}');
+      if (p.description.isNotEmpty) {
+        buffer.writeln(p.description);
+      }
+    } else {
+      buffer.writeln('Projects:\n');
+      for (int i = 0; i < selectedProjects.length; i++) {
+        final p = selectedProjects[i];
+        if (p.description.isNotEmpty) {
+          buffer.writeln('${i + 1}. ${p.name} - ${p.description}');
+        } else {
+          buffer.writeln('${i + 1}. ${p.name}');
+        }
+      }
+    }
+
+    final text = buffer.toString().trim();
+    if (text.isNotEmpty) {
+      await Share.share(text);
+    }
+  }
+
   // ── Delete Multiple ───────────────────────
   Future<void> deleteMultiple(List<String> projectIds) async {
     final currentList = state.valueOrNull ?? [];
@@ -121,13 +159,12 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   }
 }
 
-
 // ──────────────────────────────────────────────
 // Project Items State
 // ──────────────────────────────────────────────
 
-final projectItemsProvider =
-    StateNotifierProvider.family<ProjectItemsNotifier, AsyncValue<List<Item>>, String>((ref, projectId) {
+final projectItemsProvider = StateNotifierProvider.family<ProjectItemsNotifier,
+    AsyncValue<List<Item>>, String>((ref, projectId) {
   return ProjectItemsNotifier(ref.watch(projectRepositoryProvider), projectId);
 });
 
@@ -135,18 +172,20 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
   final ProjectRepository _repository;
   final String _projectId;
 
-  ProjectItemsNotifier(this._repository, this._projectId) : super(const AsyncValue.loading()) {
+  ProjectItemsNotifier(this._repository, this._projectId)
+      : super(const AsyncValue.loading()) {
     _load();
   }
 
   Future<void> _load() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repository.getProjectItems(_projectId));
+    state =
+        await AsyncValue.guard(() => _repository.getProjectItems(_projectId));
   }
 
   Future<void> updateItem(Item updatedItem) async {
     final currentList = state.valueOrNull ?? [];
-    
+
     // 1) Call repository to perform PATCH
     await _repository.updateItem(
       itemId: updatedItem.id,
@@ -156,7 +195,7 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
       url: updatedItem.url,
       description: updatedItem.description,
     );
-    
+
     // 2) Replace item in state list immutably without refetching from network
     state = AsyncValue.data([
       for (final item in currentList)
@@ -168,7 +207,8 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
   Future<void> deleteMultipleItems(List<String> itemIds) async {
     final currentList = state.valueOrNull ?? [];
     try {
-      await _repository.deleteMultipleItems(itemIds: itemIds, projectId: _projectId);
+      await _repository.deleteMultipleItems(
+          itemIds: itemIds, projectId: _projectId);
       final idSet = Set<String>.from(itemIds);
       state = AsyncValue.data(
         currentList.where((i) => !idSet.contains(i.id)).toList(),
@@ -176,6 +216,46 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
     } catch (e, stack) {
       state = AsyncValue.data(currentList);
       Error.throwWithStackTrace(e, stack);
+    }
+  }
+
+  Future<void> shareSelectedItems(Set<String> selectedIds) async {
+    final currentList = state.valueOrNull ?? [];
+    if (currentList.isEmpty || selectedIds.isEmpty) return;
+
+    final selectedItems =
+        currentList.where((item) => selectedIds.contains(item.id)).toList();
+    if (selectedItems.isEmpty) return;
+
+    final StringBuffer buffer = StringBuffer();
+    buffer.writeln('Founder Notes Export:\n');
+
+    for (int i = 0; i < selectedItems.length; i++) {
+      final item = selectedItems[i];
+      buffer.writeln('${i + 1}. ${item.title}');
+
+      if (item.type == ItemType.link &&
+          item.url != null &&
+          item.url!.isNotEmpty) {
+        buffer.writeln('   ${item.url}');
+      } else if (item.type == ItemType.note && item.description.isNotEmpty) {
+        buffer.writeln('   ${item.description}');
+      } else if (item.type == ItemType.file &&
+          item.fileUrl != null &&
+          item.fileUrl!.isNotEmpty) {
+        buffer.writeln('   ${item.fileUrl}');
+      } else if (item.subtitle.isNotEmpty) {
+        buffer.writeln('   ${item.subtitle}');
+      }
+
+      if (i < selectedItems.length - 1) {
+        buffer.writeln('');
+      }
+    }
+
+    final text = buffer.toString().trim();
+    if (text.isNotEmpty) {
+      await Share.share(text);
     }
   }
 }
@@ -306,11 +386,12 @@ class AddItemNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final addItemProvider = StateNotifierProvider.family<AddItemNotifier, AsyncValue<void>, String>((ref, projectId) {
+final addItemProvider =
+    StateNotifierProvider.family<AddItemNotifier, AsyncValue<void>, String>(
+        (ref, projectId) {
   return AddItemNotifier(
     ref.watch(projectRepositoryProvider),
     ref,
     projectId,
   );
 });
-

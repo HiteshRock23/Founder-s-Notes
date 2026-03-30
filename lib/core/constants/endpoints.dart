@@ -6,20 +6,24 @@ class Endpoints {
   // 127.0.0.1 works for physical devices (with adb reverse) and Simulators.
   // 10.0.2.2 is for Android Emulators.
   // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
-  static const String baseUrl = "https://foundernotes.lyrprompt.cloud/";
+  // static const String baseUrl = "https://foundernotes.lyrprompt.cloud/";
+  static const String baseUrl = "http://172.22.124.227:8000/";
   static const int receiveTimeout = 30000;
   static const int connectionTimeout = 30000;
 
   // Auth
   static const String login = 'api/auth/login/';
   static const String refreshToken = 'api/auth/token/refresh/';
+  static const String me = 'api/auth/me/';
 
   // Projects
   static const String projects = 'api/projects/';
   static String projectDetail(String id) => 'api/projects/$id/';
-  static String projectItems(String projectId) => 'api/projects/$projectId/items/';
+  static String projectItems(String projectId) =>
+      'api/projects/$projectId/items/';
   // POST to the same URL as GET items — REST convention for list+create.
-  static String createItem(String projectId) => 'api/projects/$projectId/items/';
+  static String createItem(String projectId) =>
+      'api/projects/$projectId/items/';
   // PATCH / DELETE use the same detail URL.
   static String renameProject(String id) => 'api/projects/$id/';
   static String deleteProject(String id) => 'api/projects/$id/';

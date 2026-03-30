@@ -21,14 +21,12 @@ class EditItemBottomSheet extends ConsumerStatefulWidget {
 
   const EditItemBottomSheet._({required this.item, required this.projectId});
 
-  static Future<void> show(
-      BuildContext context, Item item, String projectId) {
+  static Future<void> show(BuildContext context, Item item, String projectId) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          EditItemBottomSheet._(item: item, projectId: projectId),
+      builder: (_) => EditItemBottomSheet._(item: item, projectId: projectId),
     );
   }
 
@@ -76,17 +74,14 @@ class _EditItemBottomSheetState extends ConsumerState<EditItemBottomSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      await ref
-          .read(addItemProvider(widget.projectId).notifier)
-          .editItem(
+      await ref.read(addItemProvider(widget.projectId).notifier).editItem(
             itemId: _item.id,
             title: _titleController.text.trim(),
             content: _item.type == ItemType.note
                 ? _contentController.text.trim()
                 : null,
-            url: _item.type == ItemType.link
-                ? _urlController.text.trim()
-                : null,
+            url:
+                _item.type == ItemType.link ? _urlController.text.trim() : null,
             description: _item.type == ItemType.link
                 ? _descriptionController.text.trim()
                 : null,
@@ -232,8 +227,7 @@ class _EditItemBottomSheetState extends ConsumerState<EditItemBottomSheet> {
                 child: Row(
                   children: [
                     Icon(Icons.error_outline,
-                        size: 16,
-                        color: theme.colorScheme.onErrorContainer),
+                        size: 16, color: theme.colorScheme.onErrorContainer),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

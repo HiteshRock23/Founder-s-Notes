@@ -1,0 +1,1 @@
+﻿  error - features\projects\presentation\providers\project_provider.dart:241:65 - The property 'isNotEmpty' can't be unconditionally accessed because the receiver can be 'null'. Try making the access conditional (using '?.') or adding a null check to the target ('!'). - unchecked_use_of_nullable_value

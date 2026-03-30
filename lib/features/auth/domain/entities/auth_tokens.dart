@@ -8,5 +8,6 @@ class AuthTokens {
   });
 
   @override
-  String toString() => 'AuthTokens(accessToken: $accessToken, refreshToken: $refreshToken)';
+  String toString() =>
+      'AuthTokens(accessToken: $accessToken, refreshToken: $refreshToken)';
 }

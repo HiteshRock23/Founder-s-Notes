@@ -34,7 +34,7 @@ class MainShell extends ConsumerWidget {
   /// Ordered to match BottomNavigationBar item positions.
   static const List<Widget> _screens = [
     ProjectsScreen(), // index 0
-    SearchScreen(),   // index 1
+    SearchScreen(), // index 1
     SettingsScreen(), // index 2
   ];
 
@@ -71,8 +71,7 @@ class MainShell extends ConsumerWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
-        onTap: (index) =>
-            ref.read(shellIndexProvider.notifier).state = index,
+        onTap: (index) => ref.read(shellIndexProvider.notifier).state = index,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: theme.colorScheme.primary,
         unselectedItemColor: theme.colorScheme.onSurfaceVariant,

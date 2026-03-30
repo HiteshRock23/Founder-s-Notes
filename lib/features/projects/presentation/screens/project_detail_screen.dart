@@ -33,7 +33,9 @@ class ProjectDetailScreen extends ConsumerWidget {
       case 'delete':
         _showDeleteConfirmation(context, ref);
       case 'star':
-        ref.read(projectsListProvider.notifier).toggleStar(project.id, !project.isStarred);
+        ref
+            .read(projectsListProvider.notifier)
+            .toggleStar(project.id, !project.isStarred);
     }
   }
 
@@ -81,9 +83,7 @@ class ProjectDetailScreen extends ConsumerWidget {
 
   Future<void> _deleteProject(BuildContext context, WidgetRef ref) async {
     try {
-      await ref
-          .read(projectsListProvider.notifier)
-          .deleteProject(project.id);
+      await ref.read(projectsListProvider.notifier).deleteProject(project.id);
 
       if (context.mounted) {
         // Pop back to ProjectsScreen — the project no longer exists.
@@ -120,9 +120,9 @@ class ProjectDetailScreen extends ConsumerWidget {
     // Watch the projects list so the AppBar title re-renders if renamed.
     final projects = ref.watch(projectsListProvider).valueOrNull ?? [];
     final liveProject = projects.cast<Project?>().firstWhere(
-          (p) => p?.id == project.id,
-          orElse: () => null,
-        ) ??
+              (p) => p?.id == project.id,
+              orElse: () => null,
+            ) ??
         project;
 
     final itemsAsync = ref.watch(projectItemsProvider(project.id));
@@ -132,133 +132,174 @@ class ProjectDetailScreen extends ConsumerWidget {
 
     return DefaultTabController(
       length: 4,
-      child: Scaffold(
-        appBar: selectionState.isSelectionMode
-            ? AppBar(
-                backgroundColor: const Color(0xFFE3F2FD),
-                leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => selectionNotifier.clearSelection(),
-                ),
-                title: Text('${selectionState.selectedIds.length} Selected'),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      _showBatchDeleteConfirmation(context, ref, selectionState.selectedIds);
-                    },
+      child: PopScope(
+        canPop: !selectionState.isSelectionMode,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && selectionState.isSelectionMode) {
+            selectionNotifier.clearSelection();
+          }
+        },
+        child: Scaffold(
+          appBar: selectionState.isSelectionMode
+              ? AppBar(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  iconTheme: IconThemeData(
+                      color: Theme.of(context).colorScheme.onSurface),
+                  leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => selectionNotifier.clearSelection(),
                   ),
-                ],
-              )
-            : AppBar(
-                title: Text(liveProject.name),
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                actions: [
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_horiz),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    onSelected: (value) => _onMenuSelected(context, ref, value),
-                    itemBuilder: (_) => [
-                      const PopupMenuItem(
-                        value: 'rename',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
-                            SizedBox(width: 10),
-                            Text('Rename'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'star',
-                        child: Row(
-                          children: [
-                            Icon(
-                              liveProject.isStarred ? Icons.star : Icons.star_border,
-                              size: 18,
-                              color: liveProject.isStarred ? Colors.orange : Colors.black87,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(liveProject.isStarred ? 'Unstar' : 'Star'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline,
-                                size: 18, color: Colors.red[600]),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.red[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  title: Text(
+                    '${selectionState.selectedIds.length} selected',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
-                ],
-              ),
-        body: itemsAsync.when(
-          data: (items) => Column(
-            children: [
-              ProjectHeader(project: liveProject),
-              const TabBarWidget(),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _ItemsListView(items: items, projectId: project.id),
-                    _ItemsListView(
-                      projectId: project.id,
-                      items: items
-                          .where((i) => i.type == ItemType.note)
-                          .toList(),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      color: Theme.of(context).colorScheme.onSurface,
+                      tooltip: 'Share selected',
+                      onPressed: selectionState.selectedIds.isEmpty
+                          ? null
+                          : () {
+                              ref
+                                  .read(
+                                      projectItemsProvider(project.id).notifier)
+                                  .shareSelectedItems(
+                                      selectionState.selectedIds);
+                            },
                     ),
-                    _ItemsListView(
-                      projectId: project.id,
-                      items: items
-                          .where((i) => i.type == ItemType.link)
-                          .toList(),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: selectionState.selectedIds.isEmpty
+                          ? null
+                          : () => _showBatchDeleteConfirmation(
+                              context, ref, selectionState.selectedIds),
                     ),
-                    _ItemsListView(
-                      projectId: project.id,
-                      items: items
-                          .where((i) => i.type == ItemType.file)
-                          .toList(),
+                    const SizedBox(width: 4),
+                  ],
+                )
+              : AppBar(
+                  title: Text(liveProject.name),
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  actions: [
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_horiz),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) =>
+                          _onMenuSelected(context, ref, value),
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'rename',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 18, color: Colors.black87),
+                              SizedBox(width: 10),
+                              Text('Rename'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'star',
+                          child: Row(
+                            children: [
+                              Icon(
+                                liveProject.isStarred
+                                    ? Icons.star
+                                    : Icons.star_border,
+                                size: 18,
+                                color: liveProject.isStarred
+                                    ? Colors.orange
+                                    : Colors.black87,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(liveProject.isStarred ? 'Unstar' : 'Star'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-            ],
+          body: itemsAsync.when(
+            data: (items) => Column(
+              children: [
+                ProjectHeader(project: liveProject),
+                const TabBarWidget(),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _ItemsListView(items: items, projectId: project.id),
+                      _ItemsListView(
+                        projectId: project.id,
+                        items: items
+                            .where((i) => i.type == ItemType.note)
+                            .toList(),
+                      ),
+                      _ItemsListView(
+                        projectId: project.id,
+                        items: items
+                            .where((i) => i.type == ItemType.link)
+                            .toList(),
+                      ),
+                      _ItemsListView(
+                        projectId: project.id,
+                        items: items
+                            .where((i) => i.type == ItemType.file)
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
-        ),
-        floatingActionButton: FloatingAddButton(
-          onPressed: () {
-            debugPrint('FAB pressed — projectId: ${project.id}');
-            AddItemBottomSheet.show(context, project.id);
-          },
+          floatingActionButton: selectionState.isSelectionMode
+              ? null
+              : FloatingAddButton(
+                  onPressed: () {
+                    debugPrint('FAB pressed — projectId: ${project.id}');
+                    AddItemBottomSheet.show(context, project.id);
+                  },
+                ),
         ),
       ),
     );
   }
 
-  void _showBatchDeleteConfirmation(BuildContext context, WidgetRef ref, Set<String> selectedIds) {
+  void _showBatchDeleteConfirmation(
+      BuildContext context, WidgetRef ref, Set<String> selectedIds) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Items'),
-        content: Text('Are you sure you want to delete ${selectedIds.length} item(s)? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${selectedIds.length} item(s)? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -266,7 +307,9 @@ class ProjectDetailScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(projectItemsProvider(project.id).notifier).deleteMultipleItems(selectedIds.toList());
+              ref
+                  .read(projectItemsProvider(project.id).notifier)
+                  .deleteMultipleItems(selectedIds.toList());
               ref.read(itemSelectionProvider.notifier).clearSelection();
               Navigator.pop(context);
             },

@@ -47,11 +47,13 @@ class CaptureState {
   }
 }
 
-final captureProvider = StateNotifierProvider.family<CaptureNotifier, CaptureState, String>((ref, url) {
+final captureProvider =
+    StateNotifierProvider.family<CaptureNotifier, CaptureState, String>(
+        (ref, rawText) {
   return CaptureNotifier(
     ref.watch(metadataRepositoryProvider),
     ref,
-    url,
+    rawText,
   );
 });
 
@@ -60,32 +62,61 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   final Ref _ref;
   bool _hasFetched = false;
 
-  CaptureNotifier(this._repository, this._ref, String url)
-      : super(CaptureState(url: url)) {
-    // Automatically trigger metadata fetch on initialization
-    _fetchMetadata(url);
+  static final _urlRegex =
+      RegExp(r'(https?://[^\s]+)|([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:/[^\s]*)?)');
+
+  CaptureNotifier(this._repository, this._ref, String rawText)
+      : super(CaptureState(url: _extractUrl(rawText))) {
+    final normalizedUrl = state.url;
+    // Extract a fallback title from the original text if there was extra context provided
+    String cleanRaw = rawText;
+    final match = _urlRegex.firstMatch(rawText);
+    if (match != null) {
+      cleanRaw = rawText.replaceAll(match.group(0)!, '').trim();
+    }
+
+    _fetchMetadata(normalizedUrl,
+        fallbackTitle: cleanRaw.isNotEmpty ? cleanRaw : null);
   }
 
-  Future<void> _fetchMetadata(String url) async {
+  static String _extractUrl(String raw) {
+    final match = _urlRegex.firstMatch(raw);
+    String extracted = match != null ? match.group(0)! : raw.trim();
+
+    if (!extracted.startsWith('http') &&
+        extracted.contains('.') &&
+        !extracted.contains(' ')) {
+      extracted = 'https://$extracted';
+    } else if (!extracted.startsWith('http') && match != null) {
+      extracted = 'https://$extracted';
+    }
+    return extracted;
+  }
+
+  Future<void> _fetchMetadata(String url, {String? fallbackTitle}) async {
     if (_hasFetched) return;
     _hasFetched = true;
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Preserving fallback title while loading
+    state = state.copyWith(isLoading: true, error: null, title: fallbackTitle);
 
     try {
       final metadata = await _repository.extractMetadata(url);
-      
+
       if (metadata.status == 'success') {
         state = state.copyWith(
           isLoading: false,
-          title: metadata.title,
+          title: (metadata.title != null && metadata.title!.isNotEmpty)
+              ? metadata.title
+              : state.title,
           description: metadata.description,
           favicon: metadata.favicon,
         );
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: metadata.errorMessage ?? 'Failed to extract metadata',
+          error:
+              metadata.errorMessage ?? 'Failed to extract metadata server-side',
         );
       }
     } catch (e) {
@@ -107,11 +138,11 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
 
     try {
       await _ref.read(addItemProvider(projectId).notifier).addItem(
-        type: ItemType.link,
-        title: title,
-        url: state.url,
-        description: description,
-      );
+            type: ItemType.link,
+            title: title,
+            url: state.url,
+            description: description,
+          );
       state = state.copyWith(isSaved: true, isSubmitting: false);
     } catch (e) {
       state = state.copyWith(

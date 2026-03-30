@@ -1,0 +1,19 @@
+Analyzing project_card.dart...
+
+  error - project_card.dart:209:7 - Expected to find ';'. - expected_token
+  error - project_card.dart:209:8 - Expected an identifier. - missing_identifier
+  error - project_card.dart:209:8 - Expected to find ';'. - expected_token
+  error - project_card.dart:209:8 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - project_card.dart:210:5 - Expected an identifier. - missing_identifier
+  error - project_card.dart:210:5 - Unexpected text ';'. Try removing the text. - unexpected_token
+warning - project_card.dart:209:8 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+   info - project_card.dart:44:54 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:48:96 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:54:56 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:61:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:124:60 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:141:95 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:146:83 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - project_card.dart:210:6 - Unnecessary empty statement. Try removing the empty statement or restructuring the code. - empty_statements
+
+15 issues found.
