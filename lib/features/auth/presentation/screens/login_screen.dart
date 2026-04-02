@@ -25,11 +25,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    debugPrint('[LoginScreen] Sign In button tapped');
     if (_formKey.currentState!.validate()) {
+      debugPrint('[LoginScreen] Form valid, calling AuthNotifier.login');
       await ref.read(authProvider.notifier).login(
             _emailController.text.trim(),
             _passwordController.text.trim(),
           );
+    } else {
+      debugPrint('[LoginScreen] Form validation failed');
     }
   }
 
@@ -194,63 +198,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         text: 'Sign In',
                         isLoading: authState.isLoading,
                         onPressed: _handleLogin,
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Divider(
-                                  color: theme.colorScheme.outline
-                                      .withValues(alpha: 0.1))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'OR',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.3),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                              child: Divider(
-                                  color: theme.colorScheme.outline
-                                      .withValues(alpha: 0.1))),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Google Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                                color: theme.colorScheme.outline
-                                    .withValues(alpha: 0.2)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                            height: 20,
-                          ),
-                          label: Text(
-                            'Continue with Google',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),

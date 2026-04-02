@@ -56,30 +56,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Login ─────────────────────────────────────────────────────────────────
 
   Future<void> login(String email, String password) async {
+    debugPrint('[AuthNotifier] Login process started for: $email');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       await _repository.login(email, password);
+      debugPrint('[AuthNotifier] Login success for: $email');
       state = state.copyWith(isLoading: false, isAuthenticated: true);
     } on UnauthenticatedException {
+      debugPrint('[AuthNotifier] Login failed: Unauthenticated (401)');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
         error: 'Invalid email or password.',
       );
     } on ValidationException catch (e) {
+      debugPrint('[AuthNotifier] Login failed: Validation error: ${e.message}');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
         error: e.message,
       );
-    } on NetworkException {
+    } on NetworkException catch (e) {
+      debugPrint('[AuthNotifier] Login failed: Network error: ${e.message}');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
         error: 'Cannot connect to the server. Check your internet connection.',
       );
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AuthNotifier] Login failed: Unexpected error: $e');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
@@ -101,5 +107,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// resets state so the AuthGate redirects to LoginScreen.
   Future<void> forceLogout() async {
     state = AuthState.initial();
+  }
+
+  Future<void> register(String name, String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _repository.register(name, email, password);
+      // Auto-login after successful registration
+      await login(email, password);
+    } on ValidationException catch (e) {
+      String message = e.message;
+      if (message.toLowerCase().contains('exists')) {
+        message = 'An account with this email already exists.';
+      }
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        error: message,
+      );
+    } on NetworkException {
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        error: 'Cannot connect to the server. Check your internet connection.',
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        error: 'Registration failed. Please try again.',
+      );
+    }
   }
 }

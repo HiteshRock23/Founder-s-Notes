@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../constants/endpoints.dart';
 import '../errors/api_exception.dart';
 import 'package:mobile/core/storage/token_storage.dart';
@@ -69,6 +70,19 @@ class DioClient {
         onError: _onError,
       ),
     );
+
+    // Production-ready logging
+    if (kDebugMode) {
+      _dio.interceptors.add(PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ));
+    }
   }
 
   // ── Request: attach Bearer token ──────────────────────────────────────────
@@ -77,8 +91,10 @@ class DioClient {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    debugPrint('[DioClient] onRequest: ${options.method} ${options.path}');
     final token = await _storage.getAccessToken();
     if (token != null && token.isNotEmpty) {
+      debugPrint('[DioClient] Attaching Bearer token');
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
@@ -91,6 +107,7 @@ class DioClient {
     ErrorInterceptorHandler handler,
   ) async {
     final statusCode = error.response?.statusCode;
+    debugPrint('[DioClient] onError: ${error.type} Status: $statusCode Path: ${error.requestOptions.path}');
 
     // Only attempt refresh for 401 errors that are not themselves from the
     // refresh or login endpoints (to prevent infinite loops).

@@ -10,6 +10,7 @@ import 'core/utils/url_normalizer.dart';
 import 'features/capture/presentation/screens/capture_screen.dart';
 import 'core/navigation/auth_gate.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/signup_screen.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -122,6 +123,7 @@ class _FounderAppState extends ConsumerState<FounderApp> {
       home: const AuthGate(),
       routes: {
         '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignUpScreen(),
         '/dashboard': (context) => const MainShell(),
       },
     );

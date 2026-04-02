@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../providers/auth_provider.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -12,6 +13,7 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -20,6 +22,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -28,18 +31,30 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      // Logic for sign up will be implemented here
-      // For now, we simulate success and navigate back or to dashboard
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! (Demo)')),
-      );
-      Navigator.of(context).pushReplacementNamed('/dashboard');
+      await ref.read(authProvider.notifier).register(
+            _nameController.text.trim(),
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+          );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final authState = ref.watch(authProvider);
+
+    // Listen for auth state changes for error snackbars
+    ref.listen(authProvider, (previous, next) {
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: theme.colorScheme.error,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -69,7 +84,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
-                  Icons.person_add_outlined,
+                  Icons.hub_outlined,
                   color: theme.colorScheme.primary,
                   size: 32,
                 ),
@@ -86,14 +101,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Join Founder Hub and unify your projects.',
+                'Join Founder Hub and start building.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 40),
 
-              // Sign Up Card
+              // Signup Card
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -112,6 +127,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Name Field
+                      AppTextField(
+                        label: 'Full Name',
+                        hintText: 'John Doe',
+                        controller: _nameController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
                       // Email Field
                       AppTextField(
                         label: 'Email Address',
@@ -119,29 +148,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Email is required';
-                          if (!value.contains('@'))
+                          }
+                          if (!value.contains('@')) {
                             return 'Enter a valid email';
+                          }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       // Password Field
-                      Text(
-                        'PASSWORD',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       AppTextField(
-                        label: '',
+                        label: 'Password',
                         hintText: '••••••••',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -158,29 +178,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               () => _obscurePassword = !_obscurePassword),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Password is required';
-                          if (value.length < 6)
-                            return 'Password must be at least 6 characters';
+                          }
+                          if (value.length < 6) {
+                            return 'Minimum 6 characters';
+                          }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       // Confirm Password Field
-                      Text(
-                        'CONFIRM PASSWORD',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       AppTextField(
-                        label: '',
+                        label: 'Confirm Password',
                         hintText: '••••••••',
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
@@ -198,18 +209,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                   !_obscureConfirmPassword),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Please confirm your password';
-                          if (value != _passwordController.text)
+                          }
+                          if (value != _passwordController.text) {
                             return 'Passwords do not match';
+                          }
                           return null;
                         },
                       ),
                       const SizedBox(height: 32),
 
-                      // Sign Up Button
+                      // Submit Button
                       PrimaryButton(
-                        text: 'Create Account',
+                        text: 'Sign Up',
+                        isLoading: authState.isLoading,
                         onPressed: _handleSignUp,
                       ),
                     ],
@@ -219,7 +233,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
               const SizedBox(height: 32),
 
-              // Sign In Row
+              // Login Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

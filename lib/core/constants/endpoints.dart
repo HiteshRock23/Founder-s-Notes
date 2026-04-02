@@ -15,6 +15,7 @@ class Endpoints {
   static const String login = 'api/auth/login/';
   static const String refreshToken = 'api/auth/token/refresh/';
   static const String me = 'api/auth/me/';
+  static const String register = 'api/auth/register/';
 
   // Projects
   static const String projects = 'api/projects/';

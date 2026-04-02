@@ -9,6 +9,7 @@ class AuthService {
   AuthService(this._dioClient);
 
   Future<AuthResponseModel> login(String email, String password) async {
+    debugPrint('[AuthService] POST ${Endpoints.baseUrl}${Endpoints.login}');
     final response = await _dioClient.post(
       Endpoints.login,
       data: {
@@ -16,6 +17,7 @@ class AuthService {
         'password': password,
       },
     );
+    debugPrint('[AuthService] Login response received: ${response.statusCode}');
     return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -33,5 +35,16 @@ class AuthService {
   Future<UserModel> getMe() async {
     final response = await _dioClient.get(Endpoints.me);
     return UserModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> register(String name, String email, String password) async {
+    await _dioClient.post(
+      Endpoints.register,
+      data: {
+        'name': name,
+        'email': email,
+        'password': password,
+      },
+    );
   }
 }

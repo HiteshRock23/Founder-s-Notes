@@ -13,14 +13,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthTokens> login(String email, String password) async {
+    debugPrint('[AuthRepository] Calling AuthService.login for: $email');
     final response = await _authService.login(email, password);
 
+    debugPrint('[AuthRepository] Login API success, saving tokens...');
     // Atomically persist both tokens
     await _tokenStorage.saveTokens(
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
     );
 
+    debugPrint('[AuthRepository] Tokens saved successfully.');
     return response;
   }
 
@@ -51,5 +54,10 @@ class AuthRepositoryImpl implements AuthRepository {
         await _authService.refreshAccessToken(refreshToken);
     await _tokenStorage.saveAccessToken(newAccessToken);
     return newAccessToken;
+  }
+
+  @override
+  Future<void> register(String name, String email, String password) async {
+    await _authService.register(name, email, password);
   }
 }

@@ -238,7 +238,7 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
           item.url != null &&
           item.url!.isNotEmpty) {
         buffer.writeln('   ${item.url}');
-      } else if (item.type == ItemType.note && item.description.isNotEmpty) {
+      } else if (item.type == ItemType.note && (item.description ?? '').isNotEmpty) {
         buffer.writeln('   ${item.description}');
       } else if (item.type == ItemType.file &&
           item.fileUrl != null &&
