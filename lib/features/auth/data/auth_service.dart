@@ -1,50 +1,34 @@
+import 'package:flutter/foundation.dart';
 import 'package:mobile/core/network/dio_client.dart';
-import 'package:mobile/core/constants/endpoints.dart';
 import 'package:mobile/features/auth/data/models/auth_response_model.dart';
 import 'package:mobile/features/auth/data/models/user_model.dart';
 
+/// Service for authentication. 
+/// Legacy JWT methods have been stubbed out in preparation for Firebase Auth.
 class AuthService {
   final DioClient _dioClient;
 
   AuthService(this._dioClient);
 
   Future<AuthResponseModel> login(String email, String password) async {
-    debugPrint('[AuthService] POST ${Endpoints.baseUrl}${Endpoints.login}');
-    final response = await _dioClient.post(
-      Endpoints.login,
-      data: {
-        'email': email,
-        'password': password,
-      },
-    );
-    debugPrint('[AuthService] Login response received: ${response.statusCode}');
-    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    debugPrint('[AuthService] Legacy login called. No-op.');
+    throw UnimplementedError('Legacy JWT login is disabled. Use Firebase Auth.');
   }
 
-  /// Exchanges a refresh token for a fresh access token.
-  /// Returns only the new access token string.
   Future<String> refreshAccessToken(String refreshToken) async {
-    final response = await _dioClient.post(
-      Endpoints.refreshToken,
-      data: {'refresh': refreshToken},
-    );
-    final data = response.data as Map<String, dynamic>;
-    return data['access'] as String;
+    debugPrint('[AuthService] Legacy token refresh called. No-op.');
+    throw UnimplementedError('Legacy JWT refresh is disabled.');
   }
 
   Future<UserModel> getMe() async {
-    final response = await _dioClient.get(Endpoints.me);
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    debugPrint('[AuthService] Legacy getMe called. No-op.');
+    throw UnauthenticatedException();
   }
 
   Future<void> register(String name, String email, String password) async {
-    await _dioClient.post(
-      Endpoints.register,
-      data: {
-        'name': name,
-        'email': email,
-        'password': password,
-      },
-    );
+    debugPrint('[AuthService] Legacy register called. No-op.');
+    throw UnimplementedError('Legacy JWT registration is disabled. Use Firebase Auth.');
   }
 }
+
+class UnauthenticatedException implements Exception {}

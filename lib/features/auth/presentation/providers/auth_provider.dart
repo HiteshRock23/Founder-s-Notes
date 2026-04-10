@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/errors/api_exception.dart';
 import 'package:mobile/core/network/dio_client.dart';
@@ -15,20 +16,12 @@ final authServiceProvider = Provider<AuthService>((ref) {
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
-  final tokenStorage = ref.watch(tokenStorageProvider);
-  return AuthRepositoryImpl(authService, tokenStorage);
+  return AuthRepositoryImpl(authService);
 });
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  final notifier = AuthNotifier(repository);
-
-  // Register the global force-logout callback in the Dio layer.
-  // This allows the 401 interceptor to log the user out without a
-  // circular dependency on Riverpod inside the network layer.
-  registerForceLogoutCallback(() => notifier.forceLogout());
-
-  return notifier;
+  return AuthNotifier(repository);
 });
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
@@ -42,8 +35,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // ── Initialisation ────────────────────────────────────────────────────────
 
-  /// Called on app start. Reads the stored token to determine
-  /// whether the user is already authenticated.
+  /// Called on app start.
   Future<void> _checkAuthStatus() async {
     state = state.copyWith(isLoading: true);
     final isAuthenticated = await _repository.isAuthenticated();
@@ -56,36 +48,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Login ─────────────────────────────────────────────────────────────────
 
   Future<void> login(String email, String password) async {
-    debugPrint('[AuthNotifier] Login process started for: $email');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       await _repository.login(email, password);
-      debugPrint('[AuthNotifier] Login success for: $email');
       state = state.copyWith(isLoading: false, isAuthenticated: true);
-    } on UnauthenticatedException {
-      debugPrint('[AuthNotifier] Login failed: Unauthenticated (401)');
+    } on UnimplementedError catch (e) {
       state = state.copyWith(
         isLoading: false,
-        isAuthenticated: false,
-        error: 'Invalid email or password.',
-      );
-    } on ValidationException catch (e) {
-      debugPrint('[AuthNotifier] Login failed: Validation error: ${e.message}');
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: false,
         error: e.message,
       );
-    } on NetworkException catch (e) {
-      debugPrint('[AuthNotifier] Login failed: Network error: ${e.message}');
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: false,
-        error: 'Cannot connect to the server. Check your internet connection.',
-      );
     } catch (e) {
-      debugPrint('[AuthNotifier] Login failed: Unexpected error: $e');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
@@ -96,16 +69,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // ── Logout ────────────────────────────────────────────────────────────────
 
-  /// Explicit user-initiated logout.
   Future<void> logout() async {
     await _repository.logout();
-    state = AuthState.initial();
-  }
-
-  /// Force-logout triggered by the Dio interceptor when the refresh token
-  /// itself has expired. Clears storage (already done by interceptor) and
-  /// resets state so the AuthGate redirects to LoginScreen.
-  Future<void> forceLogout() async {
     state = AuthState.initial();
   }
 
@@ -116,21 +81,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _repository.register(name, email, password);
       // Auto-login after successful registration
       await login(email, password);
-    } on ValidationException catch (e) {
-      String message = e.message;
-      if (message.toLowerCase().contains('exists')) {
-        message = 'An account with this email already exists.';
-      }
+    } on UnimplementedError catch (e) {
       state = state.copyWith(
         isLoading: false,
-        isAuthenticated: false,
-        error: message,
-      );
-    } on NetworkException {
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: false,
-        error: 'Cannot connect to the server. Check your internet connection.',
+        error: e.message,
       );
     } catch (_) {
       state = state.copyWith(

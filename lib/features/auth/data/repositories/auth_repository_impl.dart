@@ -1,59 +1,34 @@
+import 'package:flutter/foundation.dart';
 import 'package:mobile/features/auth/domain/repositories/auth_repository.dart';
-import 'package:mobile/features/auth/domain/entities/auth_tokens.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
-import 'package:mobile/core/storage/token_storage.dart';
 import 'package:mobile/features/auth/data/auth_service.dart';
-import 'package:mobile/core/errors/api_exception.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthService _authService;
-  final TokenStorage _tokenStorage;
 
-  AuthRepositoryImpl(this._authService, this._tokenStorage);
+  AuthRepositoryImpl(this._authService);
 
   @override
-  Future<AuthTokens> login(String email, String password) async {
-    debugPrint('[AuthRepository] Calling AuthService.login for: $email');
-    final response = await _authService.login(email, password);
-
-    debugPrint('[AuthRepository] Login API success, saving tokens...');
-    // Atomically persist both tokens
-    await _tokenStorage.saveTokens(
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-    );
-
-    debugPrint('[AuthRepository] Tokens saved successfully.');
-    return response;
+  Future<void> login(String email, String password) async {
+    debugPrint('[AuthRepository] Legacy login requested. stubbed.');
+    await _authService.login(email, password);
   }
 
   @override
   Future<void> logout() async {
-    await _tokenStorage.clearTokens();
+    debugPrint('[AuthRepository] Logout requested. No-op.');
+    // In Firebase, we would call FirebaseAuth.instance.signOut();
   }
 
   @override
   Future<bool> isAuthenticated() async {
-    final token = await _tokenStorage.getAccessToken();
-    return token != null && token.isNotEmpty;
+    debugPrint('[AuthRepository] isAuthenticated check. Returning false (Pre-Firebase).');
+    return false;
   }
 
   @override
   Future<User> getMe() async {
     return await _authService.getMe();
-  }
-
-  @override
-  Future<String> refreshAccessToken() async {
-    final refreshToken = await _tokenStorage.getRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty) {
-      throw UnauthenticatedException();
-    }
-
-    final newAccessToken =
-        await _authService.refreshAccessToken(refreshToken);
-    await _tokenStorage.saveAccessToken(newAccessToken);
-    return newAccessToken;
   }
 
   @override

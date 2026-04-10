@@ -102,7 +102,6 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         currentList.where((p) => p.id != projectId).toList(),
       );
     } catch (e, stack) {
-    } catch (e, stack) {
       state = AsyncValue.data(currentList);
       Error.throwWithStackTrace(e, stack);
     }
