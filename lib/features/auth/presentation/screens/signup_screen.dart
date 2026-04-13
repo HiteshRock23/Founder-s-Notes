@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
-import '../providers/auth_provider.dart';
+// import '../providers/auth_provider.dart'; // REMOVED
+import '../../data/auth_service.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -19,6 +20,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -31,30 +33,44 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authProvider.notifier).register(
-            _nameController.text.trim(),
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await authService.signup(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+        // Send verification email immediately after account creation.
+        // AuthGate will route to EmailVerificationScreen automatically.
+        await authService.sendEmailVerification();
+        if (context.mounted) {
+          FocusScope.of(context).unfocus();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = ref.watch(authProvider);
-
-    // Listen for auth state changes for error snackbars
-    ref.listen(authProvider, (previous, next) {
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: theme.colorScheme.error,
-          ),
-        );
-      }
-    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -223,8 +239,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       // Submit Button
                       PrimaryButton(
                         text: 'Sign Up',
-                        isLoading: authState.isLoading,
-                        onPressed: _handleSignUp,
+                        isLoading: _isLoading,
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                await _handleSignUp();
+                              },
                       ),
                     ],
                   ),

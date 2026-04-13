@@ -66,5 +66,39 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!--
+		FlutterDeepLinkingEnabled: tells the Flutter engine to forward
+		platform-level openURL / openUniversalLink calls into the Dart
+		app_links stream automatically (no AppDelegate boilerplate needed).
+	-->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+
+	<!--
+		CFBundleURLTypes: custom URL scheme used by Firebase as a fallback
+		when Universal Links are unavailable (e.g. iOS Simulator, first launch).
+		The REVERSED_CLIENT_ID comes from GoogleService-Info.plist.
+		Until you add the iOS app in Firebase Console and download that file,
+		you can leave this placeholder in place — it will not cause build errors.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Firebase Google Sign-In / Verification</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!--
+					Replace with your REVERSED_CLIENT_ID from GoogleService-Info.plist
+					Format: com.googleusercontent.apps.<your-client-id>
+					Example: com.googleusercontent.apps.195753646388-xxxxxxxxxxxx
+				-->
+				<string>com.googleusercontent.apps.REPLACE_WITH_YOUR_REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

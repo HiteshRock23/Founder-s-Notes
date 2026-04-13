@@ -5,17 +5,22 @@ class Endpoints {
   // Command: adb reverse tcp:8000 tcp:8000
   // 127.0.0.1 works for physical devices (with adb reverse) and Simulators.
   // 10.0.2.2 is for Android Emulators.
-  // 10.0.2.2 is Android Emulator's alias for the host machine's localhost.
+  //
+  // ⚠️  Your IP changes every time you reconnect to Wi-Fi.
+  //     Run `ipconfig` (Windows) to find your current IPv4 address.
+  //     Or use `adb reverse tcp:8000 tcp:8000` and set baseUrl to 10.0.2.2 (emulator)
+  //     or 127.0.0.1 (physical device with adb reverse) to avoid this problem.
+  //
   // static const String baseUrl = "https://foundernotes.lyrprompt.cloud/";
-  static const String baseUrl = "http://172.22.124.227:8000/";
+  static const String baseUrl = "http://172.20.10.176:8000/";  // ← current Wi-Fi IP
   static const int receiveTimeout = 30000;
   static const int connectionTimeout = 30000;
 
-  // Auth
-  static const String login = 'api/auth/login/';
-  static const String refreshToken = 'api/auth/token/refresh/';
-  static const String me = 'api/auth/me/';
-  static const String register = 'api/auth/register/';
+  // Auth (Legacy JWT endpoints removed, replace with Firebase logic if needed)
+  // static const String login = 'api/auth/login/';
+  // static const String refreshToken = 'api/auth/token/refresh/';
+  // static const String me = 'api/auth/me/';
+  // static const String register = 'api/auth/register/';
 
   // Projects
   static const String projects = 'api/projects/';

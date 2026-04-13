@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
-import '../providers/auth_provider.dart';
+// import '../providers/auth_provider.dart'; // REMOVED
+import '../../data/auth_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +17,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,11 +29,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     debugPrint('[LoginScreen] Sign In button tapped');
     if (_formKey.currentState!.validate()) {
-      debugPrint('[LoginScreen] Form valid, calling AuthNotifier.login');
-      await ref.read(authProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await authService.login(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+        // Note: AuthGate will naturally switch the view, but we ensure clean focus drop.
+        if (context.mounted) {
+          FocusScope.of(context).unfocus();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     } else {
       debugPrint('[LoginScreen] Form validation failed');
     }
@@ -40,19 +67,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = ref.watch(authProvider);
-
-    // Listen for auth state changes
-    ref.listen(authProvider, (previous, next) {
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: theme.colorScheme.error,
-          ),
-        );
-      }
-    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // Soft neutral background
@@ -196,8 +210,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // Sign In Button
                       PrimaryButton(
                         text: 'Sign In',
-                        isLoading: authState.isLoading,
-                        onPressed: _handleLogin,
+                        isLoading: _isLoading,
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                await _handleLogin();
+                              },
                       ),
                     ],
                   ),

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		Associated Domains — enables Universal Links (iOS deep linking).
+		The OS fetches https://founder-notes-6b8cb.firebaseapp.com/apple-app-site-association
+		at install time and verifies the app's Bundle ID against it.
+		Firebase hosts this file automatically for every project that has an iOS app registered.
+
+		Prerequisite:
+		  - Register an iOS app in Firebase Console → Project Settings → Add App → iOS
+		  - Bundle ID must match com.example.mobile (Info.plist + pbxproj)
+		  - Download GoogleService-Info.plist and place it in ios/Runner/
+	-->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:founder-notes-6b8cb.firebaseapp.com</string>
+		<string>applinks:founder-notes-6b8cb.web.app</string>
+	</array>
+</dict>
+</plist>

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,10 +12,16 @@ import 'core/navigation/auth_gate.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/signup_screen.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'core/services/deep_link_service.dart';
+
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  // Must come after Firebase.initializeApp() — reads FirebaseAuth.currentUser.
+  await DeepLinkService.instance.init();
   final sharedPreferences = await SharedPreferences.getInstance();
 
   runApp(
@@ -49,6 +54,8 @@ class _FounderAppState extends ConsumerState<FounderApp> {
   @override
   void dispose() {
     _intentDataStreamSubscription.cancel();
+    // Cancel the deep-link stream so no dangling subscriptions survive.
+    DeepLinkService.instance.dispose();
     super.dispose();
   }
 

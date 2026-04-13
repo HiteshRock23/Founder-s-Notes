@@ -46,6 +46,25 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+
+            <!--
+                App Links — Firebase email verification deep link.
+                android:autoVerify="true" tells the OS to fetch
+                https://founder-notes-6b8cb.firebaseapp.com/.well-known/assetlinks.json
+                at install time and verify the SHA-256 fingerprint.
+                Once verified, tapping the link opens the app with NO disambiguation dialog.
+                Prerequisite: Register your debug + release SHA-256 in Firebase Console →
+                              Project Settings → Your Android App → SHA certificate fingerprints.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Must exactly match ActionCodeSettings.url domain. -->
+                <data
+                    android:scheme="https"
+                    android:host="founder-notes-6b8cb.firebaseapp.com" />
+            </intent-filter>
         </activity>
         
         <!-- Don't delete the meta-data below.

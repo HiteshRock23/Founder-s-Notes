@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_provider.dart';
-import '../../../../features/auth/presentation/providers/auth_provider.dart';
+// import '../../../../features/auth/presentation/providers/auth_provider.dart'; // REMOVED
+import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/settings/presentation/providers/settings_provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -160,10 +161,15 @@ class SettingsScreen extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context); // Close dialog
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) {
-                  Navigator.of(context, rootNavigator: true)
-                      .pushNamedAndRemoveUntil('/login', (route) => false);
+                try {
+                  await authService.logout();
+                  // AuthGate will safely unmount the MainShell and push LoginScreen automatically
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error logging out')),
+                    );
+                  }
                 }
               },
               child: const Text('Logout', style: TextStyle(color: Colors.red)),
