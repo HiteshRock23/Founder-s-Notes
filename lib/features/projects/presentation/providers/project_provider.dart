@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/network/dio_client.dart';
 import 'package:mobile/core/providers/selection_provider.dart';
@@ -34,6 +35,7 @@ final projectsListProvider =
 
 class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   final ProjectRepository _repository;
+  bool _isFetching = false;
 
   ProjectsNotifier(this._repository) : super(const AsyncValue.loading()) {
     loadProjects();
@@ -41,8 +43,22 @@ class ProjectsNotifier extends StateNotifier<AsyncValue<List<Project>>> {
 
   // ── Load ──────────────────────────────────
   Future<void> loadProjects() async {
+    if (_isFetching) return;
+    _isFetching = true;
+    debugPrint("STEP 1: Before loadProjects fetch");
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repository.getProjects());
+    state = await AsyncValue.guard(() async {
+      try {
+        final res = await _repository.getProjects();
+        debugPrint("STEP 2: After loadProjects fetch (Success)");
+        return res;
+      } catch (e) {
+        debugPrint("ERROR in loadProjects: $e");
+        rethrow;
+      } finally {
+        _isFetching = false;
+      }
+    });
   }
 
   // ── Create ────────────────────────────────
@@ -170,6 +186,7 @@ final projectItemsProvider = StateNotifierProvider.family<ProjectItemsNotifier,
 class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
   final ProjectRepository _repository;
   final String _projectId;
+  bool _isFetching = false;
 
   ProjectItemsNotifier(this._repository, this._projectId)
       : super(const AsyncValue.loading()) {
@@ -177,9 +194,22 @@ class ProjectItemsNotifier extends StateNotifier<AsyncValue<List<Item>>> {
   }
 
   Future<void> _load() async {
+    if (_isFetching) return;
+    _isFetching = true;
+    debugPrint("STEP 1: Before _load getProjectItems fetch");
     state = const AsyncValue.loading();
-    state =
-        await AsyncValue.guard(() => _repository.getProjectItems(_projectId));
+    state = await AsyncValue.guard(() async {
+      try {
+        final res = await _repository.getProjectItems(_projectId);
+        debugPrint("STEP 2: After _load getProjectItems fetch (Success)");
+        return res;
+      } catch (e) {
+        debugPrint("ERROR in _load getProjectItems: $e");
+        rethrow;
+      } finally {
+        _isFetching = false;
+      }
+    });
   }
 
   Future<void> updateItem(Item updatedItem) async {

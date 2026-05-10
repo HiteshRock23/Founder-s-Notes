@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/metadata_repository.dart';
 import '../../../../features/projects/domain/entities/item.dart';
@@ -101,7 +102,9 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     state = state.copyWith(isLoading: true, error: null, title: fallbackTitle);
 
     try {
+      debugPrint("STEP 1: Before _repository.extractMetadata");
       final metadata = await _repository.extractMetadata(url);
+      debugPrint("STEP 2: After _repository.extractMetadata");
 
       if (metadata.status == 'success') {
         state = state.copyWith(
@@ -120,6 +123,7 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
         );
       }
     } catch (e) {
+      debugPrint("ERROR in metadata extraction: $e");
       state = state.copyWith(
         isLoading: false,
         error: 'Network error or unable to parse metadata',

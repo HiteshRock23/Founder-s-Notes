@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_provider.dart';
-// import '../../../../features/auth/presentation/providers/auth_provider.dart'; // REMOVED
 import '../../../../features/auth/data/auth_service.dart';
+import '../../../../features/auth/presentation/screens/login_screen.dart';
 import '../../../../features/settings/presentation/providers/settings_provider.dart';
-import 'package:shimmer/shimmer.dart';
+import 'change_password_screen.dart';
 
-/// SettingsScreen — app configuration, account management, and about info.
+/// SettingsScreen — account management, preferences, and app info.
 ///
-/// Current state: structural skeleton with real sections.
-/// Future: wire each tile to its respective action/screen.
+/// Reads the current Firebase user via [SettingsNotifier] (clean layer).
+/// All Firebase sign-out logic goes through [AuthService].
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -19,17 +19,26 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final settingsState = ref.watch(settingsProvider);
 
-    // Show error snackbar if user fetch failed
-    ref.listen(settingsProvider, (previous, next) {
-      if (next.error != null && previous?.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: theme.colorScheme.error,
-          ),
-        );
+    // Snackbar on transient errors
+    ref.listen<SettingsState>(settingsProvider, (previous, next) {
+      if (next.error != null && previous?.error != next.error) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.error!),
+              backgroundColor: theme.colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
       }
     });
+
+    final email = settingsState.email;
+    final initials = _initials(email);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -45,71 +54,54 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          _SectionHeader('Account'),
-          if (settingsState.isLoading && settingsState.user == null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Shimmer.fromColors(
-                baseColor: theme.colorScheme.surfaceContainerHigh,
-                highlightColor: theme.colorScheme.surfaceContainerHighest,
-                child: Row(
-                  children: [
-                    Container(width: 24, height: 24, color: Colors.white),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(width: 120, height: 16, color: Colors.white),
-                        const SizedBox(height: 4),
-                        Container(width: 180, height: 12, color: Colors.white),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            _SettingsTile(
-              icon: Icons.person_outline,
-              title: settingsState.user?.name ?? 'Unknown',
-              subtitle: settingsState.user?.email ?? 'No email available',
-              onTap: () {},
-            ),
+          // ── Account ────────────────────────────────────────────────────────
+          const _SectionHeader('Account'),
+          _AccountTile(
+            email: email ?? 'Not logged in',
+            initials: initials,
+            isLoading: settingsState.isLoading,
+          ),
           _SettingsTile(
             icon: Icons.lock_outline,
             title: 'Change Password',
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ChangePasswordScreen(),
+                ),
+              );
+            },
           ),
+
           const Divider(height: 1),
-          _SectionHeader('Preferences'),
-          _SettingsTile(
-            icon: Icons.notifications_none_rounded,
-            title: 'Notifications',
-            subtitle: 'Push and email alerts',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.notifications_none_rounded,
-            title: 'Notifications',
-            subtitle: 'Push and email alerts',
-            onTap: () {},
-          ),
+
+          // ── Preferences ────────────────────────────────────────────────────
+          const _SectionHeader('Preferences'),
+          _NotificationsTile(),
           SwitchListTile(
-            title: const Text('Dark Mode',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+            title: const Text(
+              'Dark Mode',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
             value: themeMode == ThemeMode.dark,
             onChanged: (value) {
               ref
                   .read(themeProvider.notifier)
                   .setTheme(value ? ThemeMode.dark : ThemeMode.light);
             },
-            secondary: const Icon(Icons.dark_mode_outlined,
-                color: Color(0xFF2196F3), size: 22),
+            secondary: const Icon(
+              Icons.dark_mode_outlined,
+              color: Color(0xFF2196F3),
+              size: 22,
+            ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             activeTrackColor: const Color(0xFF2196F3),
           ),
+
           const Divider(height: 1),
-          _SectionHeader('About'),
+
+          // ── About ──────────────────────────────────────────────────────────
+          const _SectionHeader('About'),
           _SettingsTile(
             icon: Icons.info_outline,
             title: 'App Version',
@@ -121,11 +113,14 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Terms & Privacy',
             onTap: () {},
           ),
+
           const SizedBox(height: 24),
+
+          // ── Sign Out ───────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: OutlinedButton.icon(
-              onPressed: () => _showLogoutDialog(context, ref),
+              onPressed: () => _showLogoutDialog(context),
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text(
                 'Sign Out',
@@ -146,33 +141,50 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  String _initials(String? email) {
+    if (email == null || email.isEmpty) return '?';
+    return email[0].toUpperCase();
+  }
+
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context); // Close dialog
+                Navigator.pop(dialogContext);
                 try {
                   await authService.logout();
-                  // AuthGate will safely unmount the MainShell and push LoginScreen automatically
-                } catch (e) {
+                  // AuthGate re-routes automatically on auth state change.
+                  // In case it doesn't (edge case), force-push LoginScreen.
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  }
+                } catch (_) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error logging out')),
+                      const SnackBar(
+                          content: Text('Sign out failed. Please try again.')),
                     );
                   }
                 }
               },
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+              child:
+                  const Text('Sign Out', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -181,7 +193,111 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-// ── Private helpers ────────────────────────────────────────────────────────
+// ── Private widgets ────────────────────────────────────────────────────────────
+
+/// Avatar + email tile for the Account section.
+class _AccountTile extends StatelessWidget {
+  final String email;
+  final String initials;
+  final bool isLoading;
+
+  const _AccountTile({
+    required this.email,
+    required this.initials,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          // Avatar circle
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Color(0xFF2196F3),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 16),
+          // Email + label
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  email,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Logged in account',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Stateful notifications tile with a toggle switch.
+class _NotificationsTile extends StatefulWidget {
+  @override
+  State<_NotificationsTile> createState() => _NotificationsTileState();
+}
+
+class _NotificationsTileState extends State<_NotificationsTile> {
+  bool _enabled = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      secondary: const Icon(
+        Icons.notifications_none_rounded,
+        color: Color(0xFF2196F3),
+        size: 22,
+      ),
+      title: const Text(
+        'Notifications',
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        _enabled ? 'Push and email alerts enabled' : 'Notifications muted',
+        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+      ),
+      value: _enabled,
+      onChanged: (v) => setState(() => _enabled = v),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      activeTrackColor: const Color(0xFF2196F3),
+    );
+  }
+}
 
 class _SectionHeader extends StatelessWidget {
   final String title;

@@ -20,8 +20,6 @@ final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  // Must come after Firebase.initializeApp() — reads FirebaseAuth.currentUser.
-  await DeepLinkService.instance.init();
   final sharedPreferences = await SharedPreferences.getInstance();
 
   runApp(
@@ -48,7 +46,12 @@ class _FounderAppState extends ConsumerState<FounderApp> {
   @override
   void initState() {
     super.initState();
-    _initShareIntentListeners();
+    // Postpone heavy intent/platform channel checks until AFTER the first frame is rendered.
+    // This breaks the BLASTBufferQueue deadlock on Android cold start.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initShareIntentListeners();
+      DeepLinkService.instance.init();
+    });
   }
 
   @override

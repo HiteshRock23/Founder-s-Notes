@@ -14,6 +14,7 @@ class ProjectsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint("BUILD TRIGGERED: ProjectsScreen");
     final theme = Theme.of(context);
     final projectsAsync = ref.watch(projectsListProvider);
     final selectionState = ref.watch(projectSelectionProvider);

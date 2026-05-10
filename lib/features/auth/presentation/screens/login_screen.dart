@@ -34,15 +34,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
 
       try {
+        debugPrint("STEP 1: Before authService.login()");
         await authService.login(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+        debugPrint("STEP 2: After authService.login()");
         // Note: AuthGate will naturally switch the view, but we ensure clean focus drop.
         if (context.mounted) {
           FocusScope.of(context).unfocus();
         }
       } catch (e) {
+        debugPrint("ERROR: $e");
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

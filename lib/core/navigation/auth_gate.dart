@@ -11,14 +11,29 @@ import '../navigation/main_shell.dart';
 ///   1. user == null              → LoginScreen
 ///   2. user && !emailVerified   → EmailVerificationScreen
 ///   3. user && emailVerified    → MainShell
-class AuthGate extends ConsumerWidget {
+class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends ConsumerState<AuthGate> {
+  late final Stream<User?> _authStateStream;
+
+  @override
+  void initState() {
+    super.initState();
+    // Cache the stream here so it's not recreated on every build
+    _authStateStream = FirebaseAuth.instance.idTokenChanges();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.idTokenChanges(), // fires on token refresh, including emailVerified changes
+      stream: _authStateStream, // fires on token refresh, including emailVerified changes
       builder: (context, snapshot) {
+        debugPrint('[AuthGate] builder called: connectionState=${snapshot.connectionState}, user=${snapshot.data?.uid}');
         // Still waiting for the auth state to resolve
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(

@@ -38,17 +38,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       });
 
       try {
+        debugPrint("STEP 1: Before authService.signup()");
         await authService.signup(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+        debugPrint("STEP 2: After authService.signup()");
         // Send verification email immediately after account creation.
         // AuthGate will route to EmailVerificationScreen automatically.
+        debugPrint("STEP 1: Before authService.sendEmailVerification()");
         await authService.sendEmailVerification();
+        debugPrint("STEP 2: After authService.sendEmailVerification()");
         if (context.mounted) {
           FocusScope.of(context).unfocus();
         }
       } catch (e) {
+        debugPrint("ERROR: $e");
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
